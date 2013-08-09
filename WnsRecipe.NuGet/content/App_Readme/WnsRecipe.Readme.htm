@@ -1,0 +1,171 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Windows Push Notification Services (WNS) Recipe</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <link href="Content/Site.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+    <div class="page">
+        <header>
+            <div id="header">
+                <div id="title">
+                    <h1>Windows Push Notification Services (WNS) Recipe</h1>
+                </div>
+                <div class="clear">
+                </div>
+            </div>
+        </header>
+        <section id="main">
+            <h2>Introduction</h2>
+            <p>
+                The WNS Recipe provides a simple managed API for authenticating against WNS, constructing payloads and posting 
+                notifications to Windows Push Notification Services (WNS).
+            </p>
+
+            <h2>Using the WNS Recipe</h2>
+
+            <p>
+                After installing this NuGet, you will have a <strong>WnsRecipe</strong> assembly added to your project references.
+            </p>
+            <p>
+                <img src="Content/WnsRecipeAssembly.png" alt="Login solution explorer" style="border: 1px solid black; padding: 15px" />
+            </p>
+            <p>
+                To send notifications using WNS, you must first register your application at the Windows Push Notifications & 
+                Live Connect portal to obtain Package Security Identifier (SID) and a secret key that your cloud service uses to 
+                authenticate with WNS.
+            </p>
+            <p>
+                An application receives push notifications by requesting a notification channel from WNS, which returns a channel 
+                URI that the application then registers with your cloud service.
+            </p>
+            <p>
+                In your cloud service, the WnsAccessTokenProvider authenticates with WNS by providing its credentials, the package 
+                SID and secret key, and receives in return an access token that the provider caches and can reuse for multiple 
+                notification requests.
+            </p>
+            <p>
+                <img src="Content/WnsAccessTokenProvider.png" alt="Login tag" style="border: 1px solid black; padding: 15px" />
+            </p>
+            <p>
+                The cloud service constructs a notification request by filling out a template class that contains the information 
+                that will be sent with the notification, including text and image references.
+            </p>
+            <p>
+                <img src="Content/ToastNotificationTemplate.png" alt="Login tag" style="border: 1px solid black; padding: 15px" />
+            </p>
+            <p>
+                Using the channel URI of a registered client, the cloud service can then send a notification whenever it has an 
+                update for the user.
+            </p>
+            <p>
+                <img src="Content/SendNotification.png" alt="Login tag" style="border: 1px solid black; padding: 15px" />
+            </p>
+			<p>
+				Note that to have the Send method available, you need to add a reference to the <strong>NotificationsExtensions</strong> namespace.
+			</p>
+			<p>
+                <img src="Content/AddingNotificationsExtensions.png" alt="Login tag" style="border: 1px solid black; padding: 15px" />
+            </p>
+
+            <h2>Diagnostics</h2>
+            <p>
+                To ease troubleshooting, the WNS Recipe has been instrumented to write trace information by taking advantage of the diagnostics 
+                support provided by the .NET Framework.</p>
+            <p>
+                By default, tracing is disabled. To enable it, you first need to configure the trace source used by the recipe by enabling one or 
+                more trace listeners and then set the level of information included in the trace by choosing from the levels: error, warning, 
+                information, or verbose.
+            </p>
+            <p>
+                For example, at the error level, the component logs any failures in sending notifications, including status information, request 
+                and response sent to WNS, as well as any HTTP headers. Increasing the level to Information also records any notifications that are 
+                sent successfully.
+            </p>
+            <p>
+                Your choice of listener will vary based on the environment where the application runs. For example, not all listeners can be used 
+                in the Windows Azure environment or some require special considerations.
+            </p>
+            <p>
+                You can configure the trace source programmatically, by initializing the TraceSource property of the WnsDiagnostics class.
+            </p>
+            <p>
+                <img src="Content/TraceSourceProperty.png" alt="Login tag" style="border: 1px solid black; padding: 15px" />
+            </p>
+            <p>
+                Otherwise, the trace source can be configured using the application configuration file. The WNS Recipe NuGet adds a new WNSRecipe 
+                source in the system.diagnostics section of the configuration file of your project. To complete the configuration, set the switchValue 
+                to choose the trace level and add one or more trace listeners, for example, by uncommenting one of the entries that have already been provided. 
+            </p>
+            <p>
+                <img src="Content/TraceSourceConfiguration.png" alt="Login tag" style="border: 1px solid black; padding: 15px" />
+            </p>
+            <p>
+                Note that some trace listeners in this section may require additional configuration steps such as configuring output file 
+                location, setting file permissions, creating event sources, etc. For additional information on trace listener configuration, please 
+                refer to <a href="http://msdn.microsoft.com/en-us/library/ff664708.aspx">Configuring Trace Listeners</a> and 
+                <a href="http://msdn.microsoft.com/en-us/library/4y5y10s7.aspx">Trace Listeners</a>.
+            </p>
+            <p>
+                To complete the configuration steps, you must enable tracing by calling the Enable method of the WnsDiagnostics class.
+            </p>
+            <p>
+                <img src="Content/EnableDiagnostics.png" alt="Login tag" style="border: 1px solid black; padding: 15px" />
+            </p>
+            <p>
+                By default, the Enable method sets up a default trace source named WNSRecipe. Optionally, the Enable method allows you to choose a different name for the trace source used by the WNS Recipe, for example, to share the 
+                same trace source used by other components in your application. For example, the following code enables the WNS Recipe to use the WNSDiagnostics trace source.
+            </p>
+            <p>
+                <img src="Content/EnableCustomDiagnostics.png" alt="Login tag" style="border: 1px solid black; padding: 15px" />
+            </p>
+            <h3>Configuring a Windows Azure application</h3>
+            <p>
+                In order to read the trace level information from the Service Configuration and change it without redeploying or stopping the service, complete de following steps: </p>
+            <ol>
+                <li>
+                    Add a setting named <b>WnsRecipeDiagnosticsTraceLevel</b> in the Service Configuration. In the value field enter the desired trace level:<br /><br />
+                    <img src="Content/WnsAzureConfigurationSetting.png" alt="Login tag" style="border: 1px solid black; padding: 15px" /><br />
+                    <br />
+                </li>
+                <li>
+                    Add the following &quot;using&quot; code in the Global.asax.cs file:<br />
+                    <pre class="code">
+using System.Diagnostics;
+using Microsoft.WindowsAzure;
+using Microsoft.WindowsAzure.ServiceRuntime;
+                    </pre>
+                </li>
+                <li>
+                    Add the following code snippet in the Application_Start method:<br />
+                    <pre class="code">
+string traceLevelConfigurationSettingName = "WnsRecipeDiagnosticsTraceLevel";
+SourceLevels traceLevel = SourceLevels.Error;
+
+if (RoleEnvironment.IsAvailable)
+{
+    var traceLevelValue = CloudConfigurationManager.GetSetting(traceLevelConfigurationSettingName);
+    Enum.TryParse<SourceLevels>(traceLevelValue, true, out traceLevel);
+
+    RoleEnvironment.Changed += (sender, e) =>
+    {
+        if (e.Changes.OfType<RoleEnvironmentConfigurationSettingChange>()
+                            .Where(change => change.ConfigurationSettingName == traceLevelConfigurationSettingName)
+                            .Any())
+        {
+            traceLevelValue = CloudConfigurationManager.GetSetting(traceLevelConfigurationSettingName);
+            Enum.TryParse<SourceLevels>(traceLevelValue, true, out traceLevel);
+        }
+    };
+}
+
+NotificationsExtensions.WnsDiagnostics.TraceSource.Switch.Level = traceLevel;
+                    </pre>
+                </li>
+            </ol>
+        </section>
+    </div>
+</body>
+</html>
