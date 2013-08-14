@@ -1,14 +1,38 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WnsRecipe.Nuget", "WnsRecipe.Nuget\WnsRecipe.Nuget.csproj", "{3319C224-CFF9-4D66-B980-35E3CEE9895D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WnsRecipe", "WnsRecipe\WnsRecipe.csproj", "{CBE3A7D5-6861-42A0-8F17-A1B735098F03}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NotificationsExtensions", "NotificationsExtensions\NotificationsExtensions.csproj", "{1EAADE8B-5531-432C-975D-3D4933F334FE}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Archive", "Archive", "{95C1BA9C-E67F-4BF9-8C5C-CDC4D9142783}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "content", "content", "{C084260F-EE1B-475D-9EA4-34AAACD0FAB9}"
+	ProjectSection(SolutionItems) = preProject
+		WnsRecipe.Nuget\content\App_Readme\WnsRecipe.Readme.htm = WnsRecipe.Nuget\content\App_Readme\WnsRecipe.Readme.htm
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "App_Readme", "App_Readme", "{992F505F-A6B5-4E4D-86F3-E90672D642F5}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Content", "Content", "{6ED77E69-98A7-4A54-8888-0CE4BB7B19AF}"
+	ProjectSection(SolutionItems) = preProject
+		WnsRecipe.Nuget\content\App_Readme\Content\EnableCustomDiagnostics.png = WnsRecipe.Nuget\content\App_Readme\Content\EnableCustomDiagnostics.png
+		WnsRecipe.Nuget\content\App_Readme\Content\EnableDiagnostics.png = WnsRecipe.Nuget\content\App_Readme\Content\EnableDiagnostics.png
+		WnsRecipe.Nuget\content\App_Readme\Content\SendNotification.png = WnsRecipe.Nuget\content\App_Readme\Content\SendNotification.png
+		WnsRecipe.Nuget\content\App_Readme\Content\ServiceConfiguration.png = WnsRecipe.Nuget\content\App_Readme\Content\ServiceConfiguration.png
+		WnsRecipe.Nuget\content\App_Readme\Content\Site.css = WnsRecipe.Nuget\content\App_Readme\Content\Site.css
+		WnsRecipe.Nuget\content\App_Readme\Content\ToastNotificationTemplate.png = WnsRecipe.Nuget\content\App_Readme\Content\ToastNotificationTemplate.png
+		WnsRecipe.Nuget\content\App_Readme\Content\TraceSourceConfiguration.png = WnsRecipe.Nuget\content\App_Readme\Content\TraceSourceConfiguration.png
+		WnsRecipe.Nuget\content\App_Readme\Content\TraceSourceProperty.png = WnsRecipe.Nuget\content\App_Readme\Content\TraceSourceProperty.png
+		WnsRecipe.Nuget\content\App_Readme\Content\WATWindows8.png = WnsRecipe.Nuget\content\App_Readme\Content\WATWindows8.png
+		WnsRecipe.Nuget\content\App_Readme\Content\WnsAccessTokenProvider.png = WnsRecipe.Nuget\content\App_Readme\Content\WnsAccessTokenProvider.png
+		WnsRecipe.Nuget\content\App_Readme\Content\WnsAzureConfigurationSetting.png = WnsRecipe.Nuget\content\App_Readme\Content\WnsAzureConfigurationSetting.png
+		WnsRecipe.Nuget\content\App_Readme\Content\WnsRecipeAssembly.png = WnsRecipe.Nuget\content\App_Readme\Content\WnsRecipeAssembly.png
+	EndProjectSection
+EndProject
 Global
-	
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
@@ -29,5 +53,10 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{C084260F-EE1B-475D-9EA4-34AAACD0FAB9} = {95C1BA9C-E67F-4BF9-8C5C-CDC4D9142783}
+		{992F505F-A6B5-4E4D-86F3-E90672D642F5} = {C084260F-EE1B-475D-9EA4-34AAACD0FAB9}
+		{6ED77E69-98A7-4A54-8888-0CE4BB7B19AF} = {992F505F-A6B5-4E4D-86F3-E90672D642F5}
 	EndGlobalSection
 EndGlobal

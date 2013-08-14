@@ -1,0 +1,5 @@
+C:\dev\WnsRecipe\NotificationsExtensions\bin\Debug\NotificationsExtensions.dll
+C:\dev\WnsRecipe\NotificationsExtensions\bin\Debug\NotificationsExtensions.pdb
+C:\dev\WnsRecipe\NotificationsExtensions\obj\Debug\NotificationsExtensions.csprojResolveAssemblyReference.cache
+C:\dev\WnsRecipe\NotificationsExtensions\obj\Debug\NotificationsExtensions.dll
+C:\dev\WnsRecipe\NotificationsExtensions\obj\Debug\NotificationsExtensions.pdb

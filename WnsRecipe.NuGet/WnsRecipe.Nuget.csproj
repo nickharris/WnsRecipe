@@ -50,34 +50,6 @@
     <Content Include="content\app.config.transform">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="content\App_Readme\Content\EnableCustomDiagnostics.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="content\App_Readme\Content\EnableDiagnostics.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="content\App_Readme\Content\SendNotification.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="content\App_Readme\Content\ServiceConfiguration.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="content\App_Readme\Content\ToastNotificationTemplate.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="content\App_Readme\Content\TraceSourceConfiguration.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="content\App_Readme\Content\TraceSourceProperty.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="content\App_Readme\Content\WnsAccessTokenProvider.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="content\App_Readme\Content\WnsAzureConfigurationSetting.png" />
-    <Content Include="content\App_Readme\Content\WnsRecipeAssembly.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
     <Content Include="content\web.config.transform">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
@@ -93,17 +65,6 @@
       <Project>{CBE3A7D5-6861-42A0-8F17-A1B735098F03}</Project>
       <Name>WnsRecipe</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="content\App_Readme\Content\Site.css">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="content\App_Readme\Content\WATWindows8.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="content\App_Readme\WnsRecipe.Readme.htm">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

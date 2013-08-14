@@ -158,31 +158,89 @@ namespace NotificationsExtensions
         /// <summary>
         /// Base square tile notification content interface.
         /// </summary>
-        public interface ISquareTileNotificationContent : ITileNotificationContent
+        public interface ISquare150x150TileNotificationContent : ITileNotificationContent
         {
         }
 
         /// <summary>
         /// Base wide tile notification content interface.
         /// </summary>
-        public interface IWideTileNotificationContent : ITileNotificationContent
+        public interface IWide310x150TileNotificationContent : ITileNotificationContent
         {
             /// <summary>
             /// Corresponding square tile notification content should be a part of every wide tile notification.
             /// </summary>
-            ISquareTileNotificationContent SquareContent { get; set; }
+            ISquare150x150TileNotificationContent Square150x150Content { get; set; }
 
             /// <summary>
             /// Whether square tile notification content needs to be added to pass
-            /// validation.  Square content is required by default.
+            /// validation.  Square150x150 content is required by default.
             /// </summary>
-            bool RequireSquareContent { get; set; }
+            bool RequireSquare150x150Content { get; set; }
+        }
+
+        /// <summary>
+        /// Base large tile notification content interface.
+        /// </summary>
+        public interface ISquare310x310TileNotificationContent : ITileNotificationContent
+        {
+            /// <summary>
+            /// Corresponding wide tile notification content should be a part of every large tile notification.
+            /// </summary>
+            IWide310x150TileNotificationContent Wide310x150Content { get; set; }
+
+            /// <summary>
+            /// Whether wide tile notification content needs to be added to pass
+            /// validation.  Wide310x150 content is required by default.
+            /// </summary>
+            bool RequireWide310x150Content { get; set; }
+        }
+
+        /// <summary>
+        /// Base Windows Phone small tile notification content interface.
+        /// </summary>
+        public interface ISquare99x99TileNotificationContent : ITileNotificationContent
+        {
+        }
+
+        /// <summary>
+        /// Base Windows Phone medium tile notification content interface.
+        /// </summary>
+        public interface ISquare210x210TileNotificationContent : ITileNotificationContent
+        {
+            /// <summary>
+            /// Corresponding small tile notification content should be a part of every medium tile notification.
+            /// </summary>
+            ISquare99x99TileNotificationContent Square99x99Content { get; set; }
+
+            /// <summary>
+            /// Whether small tile notification content needs to be added to pass
+            /// validation.  Square99x99 content is required by default.
+            /// </summary>
+            bool RequireSquare99x99Content { get; set; }
+        }
+
+        /// <summary>
+        /// Base Windows Phone large tile notification content interface.
+        /// </summary>
+        public interface IWide432x210TileNotificationContent : ITileNotificationContent
+        {
+            /// <summary>
+            /// Corresponding medium tile notification content should be a part of every large tile notification.
+            /// </summary>
+            ISquare210x210TileNotificationContent Square210x210Content { get; set; }
+
+            /// <summary>
+            /// Whether medium tile notification content needs to be added to pass
+            /// validation.  Square210x210 content is required by default.
+            /// </summary>
+            bool RequireSquare210x210Content { get; set; }
         }
 
         /// <summary>
         /// A square tile template that displays two text captions.
         /// </summary>
-        public interface ITileSquareBlock : ISquareTileNotificationContent
+        public interface ITileSquare150x150Block : ISquare150x150TileNotificationContent
         {
             /// <summary>
             /// A large block text field.
@@ -198,7 +256,7 @@ namespace NotificationsExtensions
         /// <summary>
         /// A square tile template that displays an image.
         /// </summary>
-        public interface ITileSquareImage : ISquareTileNotificationContent
+        public interface ITileSquare150x150Image : ISquare150x150TileNotificationContent
         {
             /// <summary>
             /// The main image on the tile.
@@ -210,7 +268,7 @@ namespace NotificationsExtensions
         /// A square tile template that displays an image, then transitions to show
         /// four text fields.
         /// </summary>
-        public interface ITileSquarePeekImageAndText01 : ISquareTileNotificationContent
+        public interface ITileSquare150x150PeekImageAndText01 : ISquare150x150TileNotificationContent
         {
             /// <summary>
             /// The main image on the tile.
@@ -242,7 +300,7 @@ namespace NotificationsExtensions
         /// A square tile template that displays an image, then transitions to show
         /// two text fields.
         /// </summary>
-        public interface ITileSquarePeekImageAndText02 : ISquareTileNotificationContent
+        public interface ITileSquare150x150PeekImageAndText02 : ISquare150x150TileNotificationContent
         {
             /// <summary>
             /// The main image on the tile.
@@ -264,7 +322,7 @@ namespace NotificationsExtensions
         /// A square tile template that displays an image, then transitions to show
         /// four text fields.
         /// </summary>
-        public interface ITileSquarePeekImageAndText03 : ISquareTileNotificationContent
+        public interface ITileSquare150x150PeekImageAndText03 : ISquare150x150TileNotificationContent
         {
             /// <summary>
             /// The main image on the tile.
@@ -295,7 +353,7 @@ namespace NotificationsExtensions
         /// A square tile template that displays an image, then transitions to 
         /// show a text field.
         /// </summary>
-        public interface ITileSquarePeekImageAndText04 : ISquareTileNotificationContent
+        public interface ITileSquare150x150PeekImageAndText04 : ISquare150x150TileNotificationContent
         {
             /// <summary>
             /// The main image on the tile.
@@ -311,7 +369,7 @@ namespace NotificationsExtensions
         /// <summary>
         /// A square tile template that displays four text fields.
         /// </summary>
-        public interface ITileSquareText01 : ISquareTileNotificationContent
+        public interface ITileSquare150x150Text01 : ISquare150x150TileNotificationContent
         {
             /// <summary>
             /// A heading text field.
@@ -337,7 +395,7 @@ namespace NotificationsExtensions
         /// <summary>
         /// A square tile template that displays two text fields.
         /// </summary>
-        public interface ITileSquareText02 : ISquareTileNotificationContent
+        public interface ITileSquare150x150Text02 : ISquare150x150TileNotificationContent
         {
             /// <summary>
             /// A heading text field.
@@ -353,7 +411,7 @@ namespace NotificationsExtensions
         /// <summary>
         /// A square tile template that displays four text fields.
         /// </summary>
-        public interface ITileSquareText03 : ISquareTileNotificationContent
+        public interface ITileSquare150x150Text03 : ISquare150x150TileNotificationContent
         {
             /// <summary>
             /// A body text field.
@@ -379,7 +437,7 @@ namespace NotificationsExtensions
         /// <summary>
         /// A square tile template that displays a text field.
         /// </summary>
-        public interface ITileSquareText04 : ISquareTileNotificationContent
+        public interface ITileSquare150x150Text04 : ISquare150x150TileNotificationContent
         {
             /// <summary>
             /// A body text field.
@@ -390,7 +448,7 @@ namespace NotificationsExtensions
         /// <summary>
         /// A square tile template that displays six text fields.
         /// </summary>
-        public interface ITileWideBlockAndText01 : IWideTileNotificationContent
+        public interface ITileWide310x150BlockAndText01 : IWide310x150TileNotificationContent
         {
             /// <summary>
             /// A body text field.
@@ -426,7 +484,7 @@ namespace NotificationsExtensions
         /// <summary>
         /// A square tile template that displays three text fields.
         /// </summary>
-        public interface ITileWideBlockAndText02 : IWideTileNotificationContent
+        public interface ITileWide310x150BlockAndText02 : IWide310x150TileNotificationContent
         {
             /// <summary>
             /// A body text field.
@@ -447,7 +505,7 @@ namespace NotificationsExtensions
         /// <summary>
         /// A wide tile template that displays an image.
         /// </summary>
-        public interface ITileWideImage : IWideTileNotificationContent
+        public interface ITileWide310x150Image : IWide310x150TileNotificationContent
         {
             /// <summary>
             /// The main image on the tile.
@@ -458,7 +516,7 @@ namespace NotificationsExtensions
         /// <summary>
         /// A wide tile template that displays an image and a text caption.
         /// </summary>
-        public interface ITileWideImageAndText01 : IWideTileNotificationContent
+        public interface ITileWide310x150ImageAndText01 : IWide310x150TileNotificationContent
         {
             /// <summary>
             /// The main image on the tile.
@@ -474,7 +532,7 @@ namespace NotificationsExtensions
         /// <summary>
         /// A wide tile template that displays an image and two text captions.
         /// </summary>
-        public interface ITileWideImageAndText02 : IWideTileNotificationContent
+        public interface ITileWide310x150ImageAndText02 : IWide310x150TileNotificationContent
         {
             /// <summary>
             /// The main image on the tile.
@@ -496,7 +554,7 @@ namespace NotificationsExtensions
         /// A wide tile template that displays five images - one main image,
         /// and four square images in a grid.
         /// </summary>
-        public interface ITileWideImageCollection : IWideTileNotificationContent
+        public interface ITileWide310x150ImageCollection : IWide310x150TileNotificationContent
         {
             /// <summary>
             /// The main image on the tile.
@@ -528,7 +586,7 @@ namespace NotificationsExtensions
         /// A wide tile template that displays an image, then transitions to show
         /// two text fields.
         /// </summary>
-        public interface ITileWidePeekImage01 : IWideTileNotificationContent
+        public interface ITileWide310x150PeekImage01 : IWide310x150TileNotificationContent
         {
             /// <summary>
             /// The main image on the tile.
@@ -550,7 +608,7 @@ namespace NotificationsExtensions
         /// A wide tile template that displays an image, then transitions to show
         /// five text fields.
         /// </summary>
-        public interface ITileWidePeekImage02 : IWideTileNotificationContent
+        public interface ITileWide310x150PeekImage02 : IWide310x150TileNotificationContent
         {
             /// <summary>
             /// The main image on the tile.
@@ -587,7 +645,7 @@ namespace NotificationsExtensions
         /// A wide tile template that displays an image, then transitions to show
         /// a text field.
         /// </summary>
-        public interface ITileWidePeekImage03 : IWideTileNotificationContent
+        public interface ITileWide310x150PeekImage03 : IWide310x150TileNotificationContent
         {
             /// <summary>
             /// The main image on the tile.
@@ -604,7 +662,7 @@ namespace NotificationsExtensions
         /// A wide tile template that displays an image, then transitions to show
         /// a text field.
         /// </summary>
-        public interface ITileWidePeekImage04 : IWideTileNotificationContent
+        public interface ITileWide310x150PeekImage04 : IWide310x150TileNotificationContent
         {
             /// <summary>
             /// The main image on the tile.
@@ -621,7 +679,7 @@ namespace NotificationsExtensions
         /// A wide tile template that displays an image, then transitions to show
         /// another image and two text fields.
         /// </summary>
-        public interface ITileWidePeekImage05 : IWideTileNotificationContent
+        public interface ITileWide310x150PeekImage05 : IWide310x150TileNotificationContent
         {
             /// <summary>
             /// The main image on the tile.
@@ -648,7 +706,7 @@ namespace NotificationsExtensions
         /// A wide tile template that displays an image, then transitions to show
         /// another image and a text field.
         /// </summary>
-        public interface ITileWidePeekImage06 : IWideTileNotificationContent
+        public interface ITileWide310x150PeekImage06 : IWide310x150TileNotificationContent
         {
             /// <summary>
             /// The main image on the tile.
@@ -670,7 +728,7 @@ namespace NotificationsExtensions
         /// A wide tile template that displays an image and a portion of a text field,
         /// then transitions to show all of the text field.
         /// </summary>
-        public interface ITileWidePeekImageAndText01 : IWideTileNotificationContent
+        public interface ITileWide310x150PeekImageAndText01 : IWide310x150TileNotificationContent
         {
             /// <summary>
             /// The main image on the tile.
@@ -687,7 +745,7 @@ namespace NotificationsExtensions
         /// A wide tile template that displays an image and a text field,
         /// then transitions to show the text field and four other text fields.
         /// </summary>
-        public interface ITileWidePeekImageAndText02 : IWideTileNotificationContent
+        public interface ITileWide310x150PeekImageAndText02 : IWide310x150TileNotificationContent
         {
             /// <summary>
             /// The main image on the tile.
@@ -725,7 +783,7 @@ namespace NotificationsExtensions
         /// and four square images in a grid, then transitions to show two
         /// text fields.
         /// </summary>
-        public interface ITileWidePeekImageCollection01 : ITileWideImageCollection
+        public interface ITileWide310x150PeekImageCollection01 : ITileWide310x150ImageCollection
         {
             /// <summary>
             /// A heading text field.
@@ -743,7 +801,7 @@ namespace NotificationsExtensions
         /// and four square images in a grid, then transitions to show five
         /// text fields.
         /// </summary>
-        public interface ITileWidePeekImageCollection02 : ITileWideImageCollection
+        public interface ITileWide310x150PeekImageCollection02 : ITileWide310x150ImageCollection
         {
             /// <summary>
             /// A heading text field.
@@ -776,7 +834,7 @@ namespace NotificationsExtensions
         /// and four square images in a grid, then transitions to show a
         /// text field.
         /// </summary>
-        public interface ITileWidePeekImageCollection03 : ITileWideImageCollection
+        public interface ITileWide310x150PeekImageCollection03 : ITileWide310x150ImageCollection
         {
             /// <summary>
             /// A heading text field.
@@ -789,7 +847,7 @@ namespace NotificationsExtensions
         /// and four square images in a grid, then transitions to show a
         /// text field.
         /// </summary>
-        public interface ITileWidePeekImageCollection04 : ITileWideImageCollection
+        public interface ITileWide310x150PeekImageCollection04 : ITileWide310x150ImageCollection
         {
             /// <summary>
             /// A body text field.
@@ -802,7 +860,7 @@ namespace NotificationsExtensions
         /// and four square images in a grid, then transitions to show an image
         /// and two text fields.
         /// </summary>
-        public interface ITileWidePeekImageCollection05 : ITileWideImageCollection
+        public interface ITileWide310x150PeekImageCollection05 : ITileWide310x150ImageCollection
         {
             /// <summary>
             /// The secondary image on the tile.
@@ -825,7 +883,7 @@ namespace NotificationsExtensions
         /// and four square images in a grid, then transitions to show an image
         /// and a text field.
         /// </summary>
-        public interface ITileWidePeekImageCollection06 : ITileWideImageCollection
+        public interface ITileWide310x150PeekImageCollection06 : ITileWide310x150ImageCollection
         {
             /// <summary>
             /// The secondary image on the tile.
@@ -841,7 +899,7 @@ namespace NotificationsExtensions
         /// <summary>
         /// A wide tile template that displays an image and a text field.
         /// </summary>
-        public interface ITileWideSmallImageAndText01 : IWideTileNotificationContent
+        public interface ITileWide310x150SmallImageAndText01 : IWide310x150TileNotificationContent
         {
             /// <summary>
             /// The main image on the tile.
@@ -857,7 +915,7 @@ namespace NotificationsExtensions
         /// <summary>
         /// A wide tile template that displays an image and 5 text fields.
         /// </summary>
-        public interface ITileWideSmallImageAndText02 : IWideTileNotificationContent
+        public interface ITileWide310x150SmallImageAndText02 : IWide310x150TileNotificationContent
         {
             /// <summary>
             /// The main image on the tile.
@@ -893,7 +951,7 @@ namespace NotificationsExtensions
         /// <summary>
         /// A wide tile template that displays an image and a text field.
         /// </summary>
-        public interface ITileWideSmallImageAndText03 : IWideTileNotificationContent
+        public interface ITileWide310x150SmallImageAndText03 : IWide310x150TileNotificationContent
         {
             /// <summary>
             /// The main image on the tile.
@@ -909,7 +967,7 @@ namespace NotificationsExtensions
         /// <summary>
         /// A wide tile template that displays an image and two text fields.
         /// </summary>
-        public interface ITileWideSmallImageAndText04 : IWideTileNotificationContent
+        public interface ITileWide310x150SmallImageAndText04 : IWide310x150TileNotificationContent
         {
             /// <summary>
             /// The main image on the tile.
@@ -930,7 +988,7 @@ namespace NotificationsExtensions
         /// <summary>
         /// A wide tile template that displays a poster image and two text fields.
         /// </summary>
-        public interface ITileWideSmallImageAndText05 : IWideTileNotificationContent
+        public interface ITileWide310x150SmallImageAndText05 : IWide310x150TileNotificationContent
         {
             /// <summary>
             /// The main image on the tile.
@@ -951,7 +1009,7 @@ namespace NotificationsExtensions
         /// <summary>
         /// A wide tile template that displays five text fields.
         /// </summary>
-        public interface ITileWideText01 : IWideTileNotificationContent
+        public interface ITileWide310x150Text01 : IWide310x150TileNotificationContent
         {
             /// <summary>
             /// A heading text field.
@@ -983,7 +1041,7 @@ namespace NotificationsExtensions
         /// A wide tile template that displays nine text fields - a heading and two columns
         /// of four text fields.
         /// </summary>
-        public interface ITileWideText02 : IWideTileNotificationContent
+        public interface ITileWide310x150Text02 : IWide310x150TileNotificationContent
         {
             /// <summary>
             /// A heading text field.
@@ -1034,7 +1092,7 @@ namespace NotificationsExtensions
         /// <summary>
         /// A wide tile template that displays a text field.
         /// </summary>
-        public interface ITileWideText03 : IWideTileNotificationContent
+        public interface ITileWide310x150Text03 : IWide310x150TileNotificationContent
         {
             /// <summary>
             /// A heading text field.
@@ -1045,7 +1103,7 @@ namespace NotificationsExtensions
         /// <summary>
         /// A wide tile template that displays a text field.
         /// </summary>
-        public interface ITileWideText04 : IWideTileNotificationContent
+        public interface ITileWide310x150Text04 : IWide310x150TileNotificationContent
         {
             /// <summary>
             /// A body text field.
@@ -1056,7 +1114,7 @@ namespace NotificationsExtensions
         /// <summary>
         /// A wide tile template that displays five text fields.
         /// </summary>
-        public interface ITileWideText05 : IWideTileNotificationContent
+        public interface ITileWide310x150Text05 : IWide310x150TileNotificationContent
         {
             /// <summary>
             /// A body text field.
@@ -1088,7 +1146,7 @@ namespace NotificationsExtensions
         /// A wide tile template that displays ten text fields - two columns
         /// of five text fields.
         /// </summary>
-        public interface ITileWideText06 : IWideTileNotificationContent
+        public interface ITileWide310x150Text06 : IWide310x150TileNotificationContent
         {
             /// <summary>
             /// A text field displayed in a column and row.
@@ -1145,7 +1203,7 @@ namespace NotificationsExtensions
         /// A wide tile template that displays nine text fields - a heading and two columns
         /// of four text fields.
         /// </summary>
-        public interface ITileWideText07 : IWideTileNotificationContent
+        public interface ITileWide310x150Text07 : IWide310x150TileNotificationContent
         {
             /// <summary>
             /// A heading text field.
@@ -1197,7 +1255,7 @@ namespace NotificationsExtensions
         /// A wide tile template that displays ten text fields - two columns
         /// of five text fields.
         /// </summary>
-        public interface ITileWideText08 : IWideTileNotificationContent
+        public interface ITileWide310x150Text08 : IWide310x150TileNotificationContent
         {
             /// <summary>
             /// A text field displayed in a column and row.
@@ -1253,7 +1311,7 @@ namespace NotificationsExtensions
         /// <summary>
         /// A wide tile template that displays two text fields.
         /// </summary>
-        public interface ITileWideText09 : IWideTileNotificationContent
+        public interface ITileWide310x150Text09 : IWide310x150TileNotificationContent
         {
             /// <summary>
             /// A heading text field.
@@ -1270,7 +1328,7 @@ namespace NotificationsExtensions
         /// A wide tile template that displays nine text fields - a heading and two columns
         /// of four text fields.
         /// </summary>
-        public interface ITileWideText10 : IWideTileNotificationContent
+        public interface ITileWide310x150Text10 : IWide310x150TileNotificationContent
         {
             /// <summary>
             /// A heading text field.
@@ -1322,7 +1380,7 @@ namespace NotificationsExtensions
         /// A wide tile template that displays ten text fields - two columns
         /// of five text fields.
         /// </summary>
-        public interface ITileWideText11 : IWideTileNotificationContent
+        public interface ITileWide310x150Text11 : IWide310x150TileNotificationContent
         {
             /// <summary>
             /// A text field displayed in a column and row.
@@ -1376,6 +1434,1070 @@ namespace NotificationsExtensions
         }
 
         /// <summary>
+        /// A large tile template that displays a heading, 
+        /// six text fields grouped into three units, 
+        /// and two more text fields.
+        /// </summary>
+        public interface ITileSquare310x310BlockAndText01 : ISquare310x310TileNotificationContent
+        {
+            /// <summary>
+            /// A heading text field.
+            /// </summary>
+            INotificationContentText TextHeadingWrap { get; }
+
+            /// <summary>
+            /// A body text field.
+            /// </summary>
+            INotificationContentText TextBody1 { get; }
+
+            /// <summary>
+            /// A body text field.
+            /// </summary>
+            INotificationContentText TextBody2 { get; }
+
+            /// <summary>
+            /// A body text field.
+            /// </summary>
+            INotificationContentText TextBody3 { get; }
+
+            /// <summary>
+            /// A body text field.
+            /// </summary>
+            INotificationContentText TextBody4 { get; }
+
+            /// <summary>
+            /// A body text field.
+            /// </summary>
+            INotificationContentText TextBody5 { get; }
+
+            /// <summary>
+            /// A body text field.
+            /// </summary>
+            INotificationContentText TextBody6 { get; }
+
+            /// <summary>
+            /// A large block text field.
+            /// </summary>
+            INotificationContentText TextBlock { get; }
+
+            /// <summary>
+            /// The description under the large block text field.
+            /// </summary>
+            INotificationContentText TextSubBlock { get; }
+        }
+
+        /// <summary>
+        /// A large tile template that displays seven text fields with one background image.
+        /// </summary>
+        public interface ITileSquare310x310BlockAndText02 : ISquare310x310TileNotificationContent
+        {
+            /// <summary>
+            /// The background image on the tile.
+            /// </summary>
+            INotificationContentImage Image { get; }
+
+            /// <summary>
+            /// A large block text field.
+            /// </summary>
+            INotificationContentText TextBlock { get; }
+
+            /// <summary>
+            /// A heading text field.
+            /// </summary>
+            INotificationContentText TextHeading1 { get; }
+
+            /// <summary>
+            /// A heading text field.
+            /// </summary>
+            INotificationContentText TextHeading2 { get; }
+
+            /// <summary>
+            /// A body text field.
+            /// </summary>
+            INotificationContentText TextBody1 { get; }
+
+            /// <summary>
+            /// A body text field.
+            /// </summary>
+            INotificationContentText TextBody2 { get; }
+
+            /// <summary>
+            /// A body text field.
+            /// </summary>
+            INotificationContentText TextBody3 { get; }
+
+            /// <summary>
+            /// A body text field.
+            /// </summary>
+            INotificationContentText TextBody4 { get; }
+        }
+
+        /// <summary>
+        /// A large square tile template that displays an image.
+        /// </summary>
+        public interface ITileSquare310x310Image : ISquare310x310TileNotificationContent
+        {
+            /// <summary>
+            /// The main image on the tile.
+            /// </summary>
+            INotificationContentImage Image { get; }
+        }
+
+        /// <summary>
+        /// A large square tile template that displays an image and a text caption.
+        /// </summary>
+        public interface ITileSquare310x310ImageAndText01 : ISquare310x310TileNotificationContent
+        {
+            /// <summary>
+            /// The main image on the tile.
+            /// </summary>
+            INotificationContentImage Image { get; }
+
+            /// <summary>
+            /// A caption for the image.
+            /// </summary>
+            INotificationContentText TextCaptionWrap { get; }
+        }
+
+        /// <summary>
+        /// A large square tile template that displays an image and two text captions.
+        /// </summary>
+        public interface ITileSquare310x310ImageAndText02 : ISquare310x310TileNotificationContent
+        {
+            /// <summary>
+            /// The main image on the tile.
+            /// </summary>
+            INotificationContentImage Image { get; }
+
+            /// <summary>
+            /// The first caption for the image.
+            /// </summary>
+            INotificationContentText TextCaption1 { get; }
+
+            /// <summary>
+            /// The second caption for the image.
+            /// </summary>
+            INotificationContentText TextCaption2 { get; }
+        }
+
+        /// <summary>
+        /// A large square tile template that displays a heading with a background image.
+        /// </summary>
+        public interface ITileSquare310x310ImageAndTextOverlay01 : ISquare310x310TileNotificationContent
+        {
+            /// <summary>
+            /// The main image on the tile.
+            /// </summary>
+            INotificationContentImage Image { get; }
+
+            /// <summary>
+            /// A caption for the image.
+            /// </summary>
+            INotificationContentText TextHeadingWrap { get; }
+        }
+
+        /// <summary>
+        /// A large square tile template that displays a heading and a text field with a background image.
+        /// </summary>
+        public interface ITileSquare310x310ImageAndTextOverlay02 : ISquare310x310TileNotificationContent
+        {
+            /// <summary>
+            /// The main image on the tile.
+            /// </summary>
+            INotificationContentImage Image { get; }
+
+            /// <summary>
+            /// A caption for the image.
+            /// </summary>
+            INotificationContentText TextHeadingWrap { get; }
+
+            /// <summary>
+            /// A body text field.
+            /// </summary>
+            INotificationContentText TextBodyWrap { get; }
+        }
+
+        /// <summary>
+        /// A large square tile template that displays a heading and three text fields with a background image.
+        /// </summary>
+        public interface ITileSquare310x310ImageAndTextOverlay03 : ISquare310x310TileNotificationContent
+        {
+            /// <summary>
+            /// The main image on the tile.
+            /// </summary>
+            INotificationContentImage Image { get; }
+
+            /// <summary>
+            /// A caption for the image.
+            /// </summary>
+            INotificationContentText TextHeadingWrap { get; }
+
+            /// <summary>
+            /// A body text field.
+            /// </summary>
+            INotificationContentText TextBody1 { get; }
+
+            /// <summary>
+            /// A body text field.
+            /// </summary>
+            INotificationContentText TextBody2 { get; }
+
+            /// <summary>
+            /// A body text field.
+            /// </summary>
+            INotificationContentText TextBody3 { get; }
+        }
+
+        /// <summary>
+        /// A large square tile template that displays five images - one main image,
+        /// and four smaller images in a row across the top.
+        /// </summary>
+        public interface ITileSquare310x310ImageCollection : ISquare310x310TileNotificationContent
+        {
+            /// <summary>
+            /// The main image on the tile.
+            /// </summary>
+            INotificationContentImage ImageMain { get; }
+
+            /// <summary>
+            /// A small image on the tile.
+            /// </summary>
+            INotificationContentImage ImageSmall1 { get; }
+
+            /// <summary>
+            /// A small square image on the tile.
+            /// </summary>
+            INotificationContentImage ImageSmall2 { get; }
+
+            /// <summary>
+            /// A small square image on the tile.
+            /// </summary>
+            INotificationContentImage ImageSmall3 { get; }
+
+            /// <summary>
+            /// A small image on the tile.
+            /// </summary>
+            INotificationContentImage ImageSmall4 { get; }
+        }
+
+        /// <summary>
+        /// A large square tile template that displays five images - one main image,
+        /// four smaller images in a row across the top, and a text caption.
+        /// </summary>
+        public interface ITileSquare310x310ImageCollectionAndText01 : ISquare310x310TileNotificationContent
+        {
+            /// <summary>
+            /// The main image on the tile.
+            /// </summary>
+            INotificationContentImage ImageMain { get; }
+
+            /// <summary>
+            /// A small image on the tile.
+            /// </summary>
+            INotificationContentImage ImageSmall1 { get; }
+
+            /// <summary>
+            /// A small square image on the tile.
+            /// </summary>
+            INotificationContentImage ImageSmall2 { get; }
+
+            /// <summary>
+            /// A small square image on the tile.
+            /// </summary>
+            INotificationContentImage ImageSmall3 { get; }
+
+            /// <summary>
+            /// A small image on the tile.
+            /// </summary>
+            INotificationContentImage ImageSmall4 { get; }
+
+            /// <summary>
+            /// A caption for the image.
+            /// </summary>
+            INotificationContentText TextCaptionWrap { get; }
+        }
+
+        /// <summary>
+        /// A large square tile template that displays five images - one main image,
+        /// four smaller images in a row across the top, and two text captions.
+        /// </summary>
+        public interface ITileSquare310x310ImageCollectionAndText02 : ISquare310x310TileNotificationContent
+        {
+            /// <summary>
+            /// The main image on the tile.
+            /// </summary>
+            INotificationContentImage ImageMain { get; }
+
+            /// <summary>
+            /// A small image on the tile.
+            /// </summary>
+            INotificationContentImage ImageSmall1 { get; }
+
+            /// <summary>
+            /// A small square image on the tile.
+            /// </summary>
+            INotificationContentImage ImageSmall2 { get; }
+
+            /// <summary>
+            /// A small square image on the tile.
+            /// </summary>
+            INotificationContentImage ImageSmall3 { get; }
+
+            /// <summary>
+            /// A small image on the tile.
+            /// </summary>
+            INotificationContentImage ImageSmall4 { get; }
+
+            /// <summary>
+            /// A caption for the image.
+            /// </summary>
+            INotificationContentText TextCaption1 { get; }
+
+            /// <summary>
+            /// A caption for the image.
+            /// </summary>
+            INotificationContentText TextCaption2 { get; }
+        }
+
+        /// <summary>
+        /// A large square tile template that displays a list of three groups, each group having an image,
+        /// a heading, and two text fields.
+        /// </summary>
+        public interface ITileSquare310x310SmallImagesAndTextList01 : ISquare310x310TileNotificationContent
+        {
+            /// <summary>
+            /// The image for the first group in the list.
+            /// </summary>
+            INotificationContentImage Image1 { get; }
+
+            /// <summary>
+            /// The heading for the first group in the list.
+            /// </summary>
+            INotificationContentText TextHeading1 { get; }
+
+            /// <summary>
+            /// The first text field for the first group in the list.
+            /// </summary>
+            INotificationContentText TextBodyGroup1Field1 { get; }
+
+            /// <summary>
+            /// The second text field for the first group in the list.
+            /// </summary>
+            INotificationContentText TextBodyGroup1Field2 { get; }
+
+            /// <summary>
+            /// The image for the second group in the list.
+            /// </summary>
+            INotificationContentImage Image2 { get; }
+
+            /// <summary>
+            /// The heading for the second group in the list.
+            /// </summary>
+            INotificationContentText TextHeading2 { get; }
+
+            /// <summary>
+            /// The first text field for the second group in the list.
+            /// </summary>
+            INotificationContentText TextBodyGroup2Field1 { get; }
+
+            /// <summary>
+            /// The second text field for the second group in the list.
+            /// </summary>
+            INotificationContentText TextBodyGroup2Field2 { get; }
+
+            /// <summary>
+            /// The image for the third group in the list.
+            /// </summary>
+            INotificationContentImage Image3 { get; }
+
+            /// <summary>
+            /// The heading for the third group in the list.
+            /// </summary>
+            INotificationContentText TextHeading3 { get; }
+
+            /// <summary>
+            /// The first text field for the third group in the list.
+            /// </summary>
+            INotificationContentText TextBodyGroup3Field1 { get; }
+
+            /// <summary>
+            /// The second text field for the third group in the list.
+            /// </summary>
+            INotificationContentText TextBodyGroup3Field2 { get; }
+        }
+
+        /// <summary>
+        /// A large square tile template that displays a list of three groups, each group having an image,
+        /// and a text field that can wrap to a total of three lines.
+        /// </summary>
+        public interface ITileSquare310x310SmallImagesAndTextList02 : ISquare310x310TileNotificationContent
+        {
+            /// <summary>
+            /// The image for the first group in the list.
+            /// </summary>
+            INotificationContentImage Image1 { get; }
+
+            /// <summary>
+            /// The text field for the first group in the list.
+            /// </summary>
+            INotificationContentText TextWrap1 { get; }
+
+            /// <summary>
+            /// The image for the second group in the list.
+            /// </summary>
+            INotificationContentImage Image2 { get; }
+
+            /// <summary>
+            /// The text field for the second group in the list.
+            /// </summary>
+            INotificationContentText TextWrap2 { get; }
+
+            /// <summary>
+            /// The image for the third group in the list.
+            /// </summary>
+            INotificationContentImage Image3 { get; }
+
+            /// <summary>
+            /// The  text field for the third group in the list.
+            /// </summary>
+            INotificationContentText TextWrap3 { get; }
+        }
+
+        /// <summary>
+        /// A large square tile template that displays a list of three groups, each group having an image,
+        /// a heading, and one text field, which wraps to two lines.
+        /// </summary>
+        public interface ITileSquare310x310SmallImagesAndTextList03 : ISquare310x310TileNotificationContent
+        {
+            /// <summary>
+            /// The image for the first group in the list.
+            /// </summary>
+            INotificationContentImage Image1 { get; }
+
+            /// <summary>
+            /// The heading for the first group in the list.
+            /// </summary>
+            INotificationContentText TextHeading1 { get; }
+
+            /// <summary>
+            /// The first text field for the first group in the list.
+            /// </summary>
+            INotificationContentText TextWrap1 { get; }
+
+            /// <summary>
+            /// The image for the second group in the list.
+            /// </summary>
+            INotificationContentImage Image2 { get; }
+
+            /// <summary>
+            /// The heading for the second group in the list.
+            /// </summary>
+            INotificationContentText TextHeading2 { get; }
+
+            /// <summary>
+            /// The first text field for the second group in the list.
+            /// </summary>
+            INotificationContentText TextWrap2 { get; }
+
+            /// <summary>
+            /// The image for the third group in the list.
+            /// </summary>
+            INotificationContentImage Image3 { get; }
+
+            /// <summary>
+            /// The heading for the third group in the list.
+            /// </summary>
+            INotificationContentText TextHeading3 { get; }
+
+            /// <summary>
+            /// The first text field for the third group in the list.
+            /// </summary>
+            INotificationContentText TextWrap3 { get; }
+        }
+
+        /// <summary>
+        /// A large square tile template that displays a list of three groups, each group having 
+        /// a heading, and one text field, which wraps to two lines followed by an image.
+        /// </summary>
+        public interface ITileSquare310x310SmallImagesAndTextList04 : ISquare310x310TileNotificationContent
+        {
+            /// <summary>
+            /// The image for the first group in the list.
+            /// </summary>
+            INotificationContentImage Image1 { get; }
+
+            /// <summary>
+            /// The heading for the first group in the list.
+            /// </summary>
+            INotificationContentText TextHeading1 { get; }
+
+            /// <summary>
+            /// The first text field for the first group in the list.
+            /// </summary>
+            INotificationContentText TextWrap1 { get; }
+
+            /// <summary>
+            /// The image for the second group in the list.
+            /// </summary>
+            INotificationContentImage Image2 { get; }
+
+            /// <summary>
+            /// The heading for the second group in the list.
+            /// </summary>
+            INotificationContentText TextHeading2 { get; }
+
+            /// <summary>
+            /// The first text field for the second group in the list.
+            /// </summary>
+            INotificationContentText TextWrap2 { get; }
+
+            /// <summary>
+            /// The image for the third group in the list.
+            /// </summary>
+            INotificationContentImage Image3 { get; }
+
+            /// <summary>
+            /// The heading for the third group in the list.
+            /// </summary>
+            INotificationContentText TextHeading3 { get; }
+
+            /// <summary>
+            /// The first text field for the third group in the list.
+            /// </summary>
+            INotificationContentText TextWrap3 { get; }
+        }
+
+        /// <summary>
+        /// A large square tile template that displays a heading and nine text fields.
+        /// </summary>
+        public interface ITileSquare310x310Text01 : ISquare310x310TileNotificationContent
+        {
+            /// <summary>
+            /// A heading text field.
+            /// </summary>
+            INotificationContentText TextHeading { get; }
+
+            /// <summary>
+            /// A body text field.
+            /// </summary>
+            INotificationContentText TextBody1 { get; }
+
+            /// <summary>
+            /// A body text field.
+            /// </summary>
+            INotificationContentText TextBody2 { get; }
+
+            /// <summary>
+            /// A body text field.
+            /// </summary>
+            INotificationContentText TextBody3 { get; }
+
+            /// <summary>
+            /// A body text field.
+            /// </summary>
+            INotificationContentText TextBody4 { get; }
+
+            /// <summary>
+            /// A body text field.
+            /// </summary>
+            INotificationContentText TextBody5 { get; }
+
+            /// <summary>
+            /// A body text field.
+            /// </summary>
+            INotificationContentText TextBody6 { get; }
+
+            /// <summary>
+            /// A body text field.
+            /// </summary>
+            INotificationContentText TextBody7 { get; }
+
+            /// <summary>
+            /// A body text field.
+            /// </summary>
+            INotificationContentText TextBody8 { get; }
+
+            /// <summary>
+            /// A body text field.
+            /// </summary>
+            INotificationContentText TextBody9 { get; }
+        }
+
+        /// <summary>
+        /// A wide tile template that displays nineteen text fields - a heading and two columns
+        /// of nine text fields.
+        /// </summary>
+        public interface ITileSquare310x310Text02 : ISquare310x310TileNotificationContent
+        {
+            /// <summary>
+            /// A heading text field.
+            /// </summary>
+            INotificationContentText TextHeading { get; }
+
+            /// <summary>
+            /// A text field displayed in a column and row.
+            /// </summary>
+            INotificationContentText TextColumn1Row1 { get; }
+
+            /// <summary>
+            /// A text field displayed in a column and row.
+            /// </summary>
+            INotificationContentText TextColumn2Row1 { get; }
+
+            /// <summary>
+            /// A text field displayed in a column and row.
+            /// </summary>
+            INotificationContentText TextColumn1Row2 { get; }
+
+            /// <summary>
+            /// A text field displayed in a column and row.
+            /// </summary>
+            INotificationContentText TextColumn2Row2 { get; }
+
+            /// <summary>
+            /// A text field displayed in a column and row.
+            /// </summary>
+            INotificationContentText TextColumn1Row3 { get; }
+
+            /// <summary>
+            /// A text field displayed in a column and row.
+            /// </summary>
+            INotificationContentText TextColumn2Row3 { get; }
+
+            /// <summary>
+            /// A text field displayed in a column and row.
+            /// </summary>
+            INotificationContentText TextColumn1Row4 { get; }
+
+            /// <summary>
+            /// A text field displayed in a column and row.
+            /// </summary>
+            INotificationContentText TextColumn2Row4 { get; }
+
+            /// <summary>
+            /// A text field displayed in a column and row.
+            /// </summary>
+            INotificationContentText TextColumn1Row5 { get; }
+
+            /// <summary>
+            /// A text field displayed in a column and row.
+            /// </summary>
+            INotificationContentText TextColumn2Row5 { get; }
+
+            /// <summary>
+            /// A text field displayed in a column and row.
+            /// </summary>
+            INotificationContentText TextColumn1Row6 { get; }
+
+            /// <summary>
+            /// A text field displayed in a column and row.
+            /// </summary>
+            INotificationContentText TextColumn2Row6 { get; }
+
+            /// <summary>
+            /// A text field displayed in a column and row.
+            /// </summary>
+            INotificationContentText TextColumn1Row7 { get; }
+
+            /// <summary>
+            /// A text field displayed in a column and row.
+            /// </summary>
+            INotificationContentText TextColumn2Row7 { get; }
+
+            /// <summary>
+            /// A text field displayed in a column and row.
+            /// </summary>
+            INotificationContentText TextColumn1Row8 { get; }
+
+            /// <summary>
+            /// A text field displayed in a column and row.
+            /// </summary>
+            INotificationContentText TextColumn2Row8 { get; }
+
+            /// <summary>
+            /// A text field displayed in a column and row.
+            /// </summary>
+            INotificationContentText TextColumn1Row9 { get; }
+
+            /// <summary>
+            /// A text field displayed in a column and row.
+            /// </summary>
+            INotificationContentText TextColumn2Row9 { get; }
+        }
+
+        /// <summary>
+        /// A large square tile template that displays eleven text fields.
+        /// </summary>
+        public interface ITileSquare310x310Text03 : ISquare310x310TileNotificationContent
+        {
+            /// <summary>
+            /// A body text field.
+            /// </summary>
+            INotificationContentText TextBody1 { get; }
+
+            /// <summary>
+            /// A body text field.
+            /// </summary>
+            INotificationContentText TextBody2 { get; }
+
+            /// <summary>
+            /// A body text field.
+            /// </summary>
+            INotificationContentText TextBody3 { get; }
+
+            /// <summary>
+            /// A body text field.
+            /// </summary>
+            INotificationContentText TextBody4 { get; }
+
+            /// <summary>
+            /// A body text field.
+            /// </summary>
+            INotificationContentText TextBody5 { get; }
+
+            /// <summary>
+            /// A body text field.
+            /// </summary>
+            INotificationContentText TextBody6 { get; }
+
+            /// <summary>
+            /// A body text field.
+            /// </summary>
+            INotificationContentText TextBody7 { get; }
+
+            /// <summary>
+            /// A body text field.
+            /// </summary>
+            INotificationContentText TextBody8 { get; }
+
+            /// <summary>
+            /// A body text field.
+            /// </summary>
+            INotificationContentText TextBody9 { get; }
+
+            /// <summary>
+            /// A body text field.
+            /// </summary>
+            INotificationContentText TextBody10 { get; }
+
+            /// <summary>
+            /// A body text field.
+            /// </summary>
+            INotificationContentText TextBody11 { get; }
+        }
+
+        /// <summary>
+        /// A wide tile template that displays 22 text fields - two columns
+        /// of 11 text fields.
+        /// </summary>
+        public interface ITileSquare310x310Text04 : ISquare310x310TileNotificationContent
+        {
+            /// <summary>
+            /// A text field displayed in a column and row.
+            /// </summary>
+            INotificationContentText TextColumn1Row1 { get; }
+
+            /// <summary>
+            /// A text field displayed in a column and row.
+            /// </summary>
+            INotificationContentText TextColumn2Row1 { get; }
+
+            /// <summary>
+            /// A text field displayed in a column and row.
+            /// </summary>
+            INotificationContentText TextColumn1Row2 { get; }
+
+            /// <summary>
+            /// A text field displayed in a column and row.
+            /// </summary>
+            INotificationContentText TextColumn2Row2 { get; }
+
+            /// <summary>
+            /// A text field displayed in a column and row.
+            /// </summary>
+            INotificationContentText TextColumn1Row3 { get; }
+
+            /// <summary>
+            /// A text field displayed in a column and row.
+            /// </summary>
+            INotificationContentText TextColumn2Row3 { get; }
+
+            /// <summary>
+            /// A text field displayed in a column and row.
+            /// </summary>
+            INotificationContentText TextColumn1Row4 { get; }
+
+            /// <summary>
+            /// A text field displayed in a column and row.
+            /// </summary>
+            INotificationContentText TextColumn2Row4 { get; }
+
+            /// <summary>
+            /// A text field displayed in a column and row.
+            /// </summary>
+            INotificationContentText TextColumn1Row5 { get; }
+
+            /// <summary>
+            /// A text field displayed in a column and row.
+            /// </summary>
+            INotificationContentText TextColumn2Row5 { get; }
+
+            /// <summary>
+            /// A text field displayed in a column and row.
+            /// </summary>
+            INotificationContentText TextColumn1Row6 { get; }
+
+            /// <summary>
+            /// A text field displayed in a column and row.
+            /// </summary>
+            INotificationContentText TextColumn2Row6 { get; }
+
+            /// <summary>
+            /// A text field displayed in a column and row.
+            /// </summary>
+            INotificationContentText TextColumn1Row7 { get; }
+
+            /// <summary>
+            /// A text field displayed in a column and row.
+            /// </summary>
+            INotificationContentText TextColumn2Row7 { get; }
+
+            /// <summary>
+            /// A text field displayed in a column and row.
+            /// </summary>
+            INotificationContentText TextColumn1Row8 { get; }
+
+            /// <summary>
+            /// A text field displayed in a column and row.
+            /// </summary>
+            INotificationContentText TextColumn2Row8 { get; }
+
+            /// <summary>
+            /// A text field displayed in a column and row.
+            /// </summary>
+            INotificationContentText TextColumn1Row9 { get; }
+
+            /// <summary>
+            /// A text field displayed in a column and row.
+            /// </summary>
+            INotificationContentText TextColumn2Row9 { get; }
+
+            /// <summary>
+            /// A text field displayed in a column and row.
+            /// </summary>
+            INotificationContentText TextColumn1Row10 { get; }
+
+            /// <summary>
+            /// A text field displayed in a column and row.
+            /// </summary>
+            INotificationContentText TextColumn2Row10 { get; }
+
+            /// <summary>
+            /// A text field displayed in a column and row.
+            /// </summary>
+            INotificationContentText TextColumn1Row11 { get; }
+
+            /// <summary>
+            /// A text field displayed in a column and row.
+            /// </summary>
+            INotificationContentText TextColumn2Row11 { get; }
+        }
+
+        /// <summary>
+        /// A wide tile template that displays nineteen text fields - a heading and two columns
+        /// of nine text fields. Column 1 is narrower than column 2.
+        /// </summary>
+        public interface ITileSquare310x310Text05 : ITileSquare310x310Text02
+        {
+            // ITileSquare310x310Text05 has the same properties as ITileSquare310x310Text02
+        }
+
+        /// <summary>
+        /// A wide tile template that displays 22 text fields - two columns
+        /// of eleven text fields. Column 1 is narrower than column 2.
+        /// </summary>
+        public interface ITileSquare310x310Text06 : ITileSquare310x310Text04
+        {
+            // ITileSquare310x310Text06 has the same properties as ITileSquare310x310Text04
+        }
+
+        /// <summary>
+        /// A wide tile template that displays nineteen text fields - a heading and two columns
+        /// of nine text fields. Column 1 is very narrow.
+        /// </summary>
+        public interface ITileSquare310x310Text07 : ITileSquare310x310Text02
+        {
+            // ITileSquare310x310Text07 has the same properties as ITileSquare310x310Text02
+        }
+
+        /// <summary>
+        /// A wide tile template that displays 22 text fields - two columns
+        /// of eleven text fields. Column 1 is very narrow.
+        /// </summary>
+        public interface ITileSquare310x310Text08 : ITileSquare310x310Text04
+        {
+            // ITileSquare310x310Text08 has the same properties as ITileSquare310x310Text04
+        }
+
+        /// <summary>
+        /// A large square tile template that displays a list of three groups, each group having
+        /// a heading, and two text fields.
+        /// </summary>
+        public interface ITileSquare310x310TextList01 : ISquare310x310TileNotificationContent
+        {
+            /// <summary>
+            /// The heading for the first group in the list.
+            /// </summary>
+            INotificationContentText TextHeading1 { get; }
+
+            /// <summary>
+            /// The first text field for the first group in the list.
+            /// </summary>
+            INotificationContentText TextBodyGroup1Field1 { get; }
+
+            /// <summary>
+            /// The second text field for the first group in the list.
+            /// </summary>
+            INotificationContentText TextBodyGroup1Field2 { get; }
+
+            /// <summary>
+            /// The heading for the second group in the list.
+            /// </summary>
+            INotificationContentText TextHeading2 { get; }
+
+            /// <summary>
+            /// The first text field for the second group in the list.
+            /// </summary>
+            INotificationContentText TextBodyGroup2Field1 { get; }
+
+            /// <summary>
+            /// The second text field for the second group in the list.
+            /// </summary>
+            INotificationContentText TextBodyGroup2Field2 { get; }
+
+            /// <summary>
+            /// The heading for the third group in the list.
+            /// </summary>
+            INotificationContentText TextHeading3 { get; }
+
+            /// <summary>
+            /// The first text field for the third group in the list.
+            /// </summary>
+            INotificationContentText TextBodyGroup3Field1 { get; }
+
+            /// <summary>
+            /// The second text field for the third group in the list.
+            /// </summary>
+            INotificationContentText TextBodyGroup3Field2 { get; }
+        }
+
+        /// <summary>
+        /// A large square tile template that displays a list of three text fields that can wrap to a total of three lines.
+        /// </summary>
+        public interface ITileSquare310x310TextList02 : ISquare310x310TileNotificationContent
+        {
+            /// <summary>
+            /// The text field for the first group in the list.
+            /// </summary>
+            INotificationContentText TextWrap1 { get; }
+
+            /// <summary>
+            /// The text field for the second group in the list.
+            /// </summary>
+            INotificationContentText TextWrap2 { get; }
+
+            /// <summary>
+            /// The  text field for the third group in the list.
+            /// </summary>
+            INotificationContentText TextWrap3 { get; }
+        }
+
+        /// <summary>
+        /// A large square tile template that displays a list of three groups, each group having
+        /// a heading, and one text field, which wraps to two lines.
+        /// </summary>
+        public interface ITileSquare310x310TextList03 : ISquare310x310TileNotificationContent
+        {
+            /// <summary>
+            /// The heading for the first group in the list.
+            /// </summary>
+            INotificationContentText TextHeading1 { get; }
+
+            /// <summary>
+            /// The first text field for the first group in the list.
+            /// </summary>
+            INotificationContentText TextWrap1 { get; }
+
+            /// <summary>
+            /// The heading for the second group in the list.
+            /// </summary>
+            INotificationContentText TextHeading2 { get; }
+
+            /// <summary>
+            /// The first text field for the second group in the list.
+            /// </summary>
+            INotificationContentText TextWrap2 { get; }
+
+            /// <summary>
+            /// The heading for the third group in the list.
+            /// </summary>
+            INotificationContentText TextHeading3 { get; }
+
+            /// <summary>
+            /// The first text field for the third group in the list.
+            /// </summary>
+            INotificationContentText TextWrap3 { get; }
+        }
+
+        /// <summary>
+        /// A Windows Phone small tile template that displays a monochrome icon with a badge.
+        /// </summary>
+        public interface ITileSquare99x99IconWithBadge : ISquare99x99TileNotificationContent
+        {
+            /// <summary>
+            /// The image for the icon.
+            /// </summary>
+            INotificationContentImage ImageIcon { get; }
+        }
+
+        /// <summary>
+        /// A Windows Phone medium tile template that displays a monochrome icon with a badge.
+        /// </summary>
+        public interface ITileSquare210x210IconWithBadge : ISquare210x210TileNotificationContent
+        {
+            /// <summary>
+            /// The image for the icon.
+            /// </summary>
+            INotificationContentImage ImageIcon { get; }
+        }
+
+        /// <summary>
+        /// A Windows Phone large tile template that displays a monochrome icon with a badge and three lines of text.
+        /// </summary>
+        public interface ITileWide432x210IconWithBadgeAndText : IWide432x210TileNotificationContent
+        {
+            /// <summary>
+            /// The image for the icon.
+            /// </summary>
+            INotificationContentImage ImageIcon { get; }
+
+            /// <summary>
+            /// A heading text field.
+            /// </summary>
+            INotificationContentText TextHeading { get; }
+
+            /// <summary>
+            /// A body text field.
+            /// </summary>
+            INotificationContentText TextBody1 { get; }
+
+            /// <summary>
+            /// A body text field.
+            /// </summary>
+            INotificationContentText TextBody2 { get; }
+        }
+
+        /// <summary>
         /// The types of behavior that can be used for application branding when
         /// tile notification content is displayed on the tile.
         /// </summary>
@@ -1417,6 +2539,70 @@ namespace NotificationsExtensions
         }
 
         /// <summary>
+        /// Type representing the incoming call command properties which is contained within
+        /// a toast notification content object.
+        /// </summary>
+        public interface IIncomingCallCommands
+        {
+            /// <summary>
+            /// Whether the toast shows the video button.
+            /// </summary>
+            bool ShowVideoCommand { get; set; }
+
+            /// <summary>
+            /// The argument passed to the app when the video command is invoked.
+            /// </summary>
+            string VideoArgument { get; set; }
+
+            /// <summary>
+            /// Whether the toast shows the voice button.
+            /// </summary>
+            bool ShowVoiceCommand { get; set; }
+
+            /// <summary>
+            /// The argument passed to the app when the voice command is invoked.
+            /// </summary>
+            string VoiceArgument { get; set; }
+
+            /// <summary>
+            /// Whether the toast shows the decline button.
+            /// </summary>
+            bool ShowDeclineCommand { get; set; }
+
+            /// <summary>
+            /// The argument passed to the app when the decline command is invoked.
+            /// </summary>
+            string DeclineArgument { get; set; }
+        }
+
+        /// <summary>
+        /// Type representing the alarm command properties which is contained within
+        /// a toast notification content object.
+        /// </summary>
+        public interface IAlarmCommands
+        {
+            /// <summary>
+            /// Whether the toast shows the snooze button.
+            /// </summary>
+            bool ShowSnoozeCommand { get; set; }
+
+            /// <summary>
+            /// The argument passed to the app when the snooze command is invoked.
+            /// </summary>
+            string SnoozeArgument { get; set; }
+
+            /// <summary>
+            /// Whether the toast shows the dismiss button.
+            /// </summary>
+            bool ShowDismissCommand { get; set; }
+
+            /// <summary>
+            /// The argument passed to the app when the dismiss command is invoked.
+            /// </summary>
+            string DismissArgument { get; set; }
+        }
+
+        /// <summary>
         /// Base toast notification content interface.
         /// </summary>
         public interface IToastNotificationContent : INotificationContent
@@ -1455,7 +2641,7 @@ namespace NotificationsExtensions
             bool AddImageQuery { get; set; }     
 
             /// <summary>
-            /// The launch parameter passed into the metro application when the toast is activated.
+            /// The launch parameter passed into the Windows Store app when the toast is activated.
             /// </summary>
             string Launch { get; set; }
 
@@ -1468,6 +2654,19 @@ namespace NotificationsExtensions
             /// The length that the toast should be displayed on screen.
             /// </summary>
             ToastDuration Duration { get; set; }
+            
+            /// <summary>
+            /// IncomingCall action buttons will be displayed on the toast if one of the option flags (ShowVideoCommand/ShowVoiceCommand/ShowDeclineCommand) is set to true.
+            /// To enable IncomingCall toasts for an app, ensure that the Lock Screen Call extension is enabled in the application manifest.
+            /// </summary>
+            IIncomingCallCommands IncomingCallCommands { get; }
+
+            /// <summary>
+            /// Alarm action buttons will be displayed on the toast if one of the option flags (ShowSnoozeCommand/ShowDismissCommand) is set to true.
+            /// To enable Alarm toasts for an app, ensure the app declares itself as Alarm capable.
+            /// The app needs to be set as the Primary Alarm on the PC Settings page (only one app can exist as the alarm app at a given time).
+            /// </summary>
+            IAlarmCommands AlarmCommands { get; }
 
 #if !WINRT_NOT_PRESENT
             /// <summary>
@@ -1514,6 +2713,46 @@ namespace NotificationsExtensions
             /// </summary>
             LoopingCall2,
             /// <summary>
+            /// Audio that corresponds to a call.
+            /// Only valid for toasts that are have the duration set to "Long".
+            /// </summary>
+            LoopingCall3,
+            /// <summary>
+            /// Audio that corresponds to a call.
+            /// Only valid for toasts that are have the duration set to "Long".
+            /// </summary>
+            LoopingCall4,
+            /// <summary>
+            /// Audio that corresponds to a call.
+            /// Only valid for toasts that are have the duration set to "Long".
+            /// </summary>
+            LoopingCall5,
+            /// <summary>
+            /// Audio that corresponds to a call.
+            /// Only valid for toasts that are have the duration set to "Long".
+            /// </summary>
+            LoopingCall6,
+            /// <summary>
+            /// Audio that corresponds to a call.
+            /// Only valid for toasts that are have the duration set to "Long".
+            /// </summary>
+            LoopingCall7,
+            /// <summary>
+            /// Audio that corresponds to a call.
+            /// Only valid for toasts that are have the duration set to "Long".
+            /// </summary>
+            LoopingCall8,
+            /// <summary>
+            /// Audio that corresponds to a call.
+            /// Only valid for toasts that are have the duration set to "Long".
+            /// </summary>
+            LoopingCall9,
+            /// <summary>
+            /// Audio that corresponds to a call.
+            /// Only valid for toasts that are have the duration set to "Long".
+            /// </summary>
+            LoopingCall10,
+            /// <summary>
             /// Audio that corresponds to an alarm.
             /// Only valid for toasts that are have the duration set to "Long".
             /// </summary>
@@ -1523,6 +2762,46 @@ namespace NotificationsExtensions
             /// Only valid for toasts that are have the duration set to "Long".
             /// </summary>
             LoopingAlarm2,
+            /// <summary>
+            /// Audio that corresponds to an alarm.
+            /// Only valid for toasts that are have the duration set to "Long".
+            /// </summary>
+            LoopingAlarm3,
+            /// <summary>
+            /// Audio that corresponds to an alarm.
+            /// Only valid for toasts that are have the duration set to "Long".
+            /// </summary>
+            LoopingAlarm4,
+            /// <summary>
+            /// Audio that corresponds to an alarm.
+            /// Only valid for toasts that are have the duration set to "Long".
+            /// </summary>
+            LoopingAlarm5,
+            /// <summary>
+            /// Audio that corresponds to an alarm.
+            /// Only valid for toasts that are have the duration set to "Long".
+            /// </summary>
+            LoopingAlarm6,
+            /// <summary>
+            /// Audio that corresponds to an alarm.
+            /// Only valid for toasts that are have the duration set to "Long".
+            /// </summary>
+            LoopingAlarm7,
+            /// <summary>
+            /// Audio that corresponds to an alarm.
+            /// Only valid for toasts that are have the duration set to "Long".
+            /// </summary>
+            LoopingAlarm8,
+            /// <summary>
+            /// Audio that corresponds to an alarm.
+            /// Only valid for toasts that are have the duration set to "Long".
+            /// </summary>
+            LoopingAlarm9,
+            /// <summary>
+            /// Audio that corresponds to an alarm.
+            /// Only valid for toasts that are have the duration set to "Long".
+            /// </summary>
+            LoopingAlarm10,
             /// <summary>
             /// No audio should be played when the toast is displayed.
             /// </summary>

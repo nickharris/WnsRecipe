@@ -30,9 +30,15 @@ using Windows.UI.Notifications;
 
 namespace NotificationsExtensions.TileContent
 {
+    internal static class TileUtil
+    {
+        public const int NOTIFICATION_CONTENT_VERSION = 2;
+    }
+
     internal abstract class TileNotificationBase : NotificationBase
     {
-        public TileNotificationBase(string templateName, int imageCount, int textCount) : base(templateName, imageCount, textCount)
+        public TileNotificationBase(string templateName, string fallbackName, int imageCount, int textCount)
+            : base(templateName, fallbackName, imageCount, textCount)
         {
         }
 
@@ -61,21 +67,21 @@ namespace NotificationsExtensions.TileContent
         private TileBranding m_Branding = TileBranding.Logo;
     }
 
-    internal interface ISquareTileInternal
+    internal interface ISquare150x150TileInternal
     {
         string SerializeBinding(string globalLang, string globalBaseUri, TileBranding globalBranding, bool globalAddImageQuery);
     }
 
-    internal class TileSquareBase : TileNotificationBase, ISquareTileInternal
+    internal class TileSquare150x150Base : TileNotificationBase, ISquare150x150TileInternal
     {
-        public TileSquareBase(string templateName, int imageCount, int textCount) : base(templateName, imageCount, textCount)
+        public TileSquare150x150Base(string templateName, string fallbackName, int imageCount, int textCount) : base(templateName, fallbackName, imageCount, textCount)
         {
         }               
 
         public override string GetContent()
         {
             StringBuilder builder = new StringBuilder(String.Empty);
-            builder.AppendFormat("<tile><visual version='{0}'", Util.NOTIFICATION_CONTENT_VERSION);
+            builder.AppendFormat("<tile><visual version='{0}'", TileUtil.NOTIFICATION_CONTENT_VERSION);
             if (!String.IsNullOrWhiteSpace(Lang))
             {
                 builder.AppendFormat(" lang='{0}'", Util.HttpEncode(Lang));
@@ -102,6 +108,10 @@ namespace NotificationsExtensions.TileContent
         {
             StringBuilder bindingNode = new StringBuilder(String.Empty);
             bindingNode.AppendFormat("<binding template='{0}'", TemplateName);
+            if (!String.IsNullOrWhiteSpace(FallbackName))
+            {
+                bindingNode.AppendFormat(" fallback='{0}'", FallbackName);
+            }
             if (!String.IsNullOrWhiteSpace(Lang) && !Lang.Equals(globalLang))
             {
                 bindingNode.AppendFormat(" lang='{0}'", Util.HttpEncode(Lang));
@@ -127,35 +137,40 @@ namespace NotificationsExtensions.TileContent
         }
     }
 
-    internal class TileWideBase : TileNotificationBase
+    internal interface IWide310x150TileInternal
     {
-        public TileWideBase(string templateName, int imageCount, int textCount) : base(templateName, imageCount, textCount)
+        string SerializeBindings(string globalLang, string globalBaseUri, TileBranding globalBranding, bool globalAddImageQuery);
+    }
+
+    internal class TileWide310x150Base : TileNotificationBase, IWide310x150TileInternal
+    {
+        public TileWide310x150Base(string templateName, string fallbackName, int imageCount, int textCount) : base(templateName, fallbackName, imageCount, textCount)
         {
         }
 
-        public ISquareTileNotificationContent SquareContent
+        public ISquare150x150TileNotificationContent Square150x150Content
         {
-            get { return m_SquareContent; }
-            set { m_SquareContent = value; }
+            get { return m_Square150x150Content; }
+            set { m_Square150x150Content = value; }
         }
 
-        public bool RequireSquareContent
+        public bool RequireSquare150x150Content
         {
-            get { return m_RequireSquareContent; }
-            set { m_RequireSquareContent = value; }
+            get { return m_RequireSquare150x150Content; }
+            set { m_RequireSquare150x150Content = value; }
         }
 
         public override string GetContent()
         {
-            if (RequireSquareContent && SquareContent == null)
+            if (RequireSquare150x150Content && Square150x150Content == null)
             {
                 throw new NotificationContentValidationException(
-                    "Square tile content should be included with each wide tile. " +
-                    "If this behavior is undesired, use the RequireSquareContent property.");
+                    "Square150x150 tile content should be included with each wide tile. " +
+                    "If this behavior is undesired, use the RequireSquare150x150Content property.");
             }
 
             StringBuilder visualNode = new StringBuilder(String.Empty);
-            visualNode.AppendFormat("<visual version='{0}'", Util.NOTIFICATION_CONTENT_VERSION);
+            visualNode.AppendFormat("<visual version='{0}'", TileUtil.NOTIFICATION_CONTENT_VERSION);
             if (!String.IsNullOrWhiteSpace(Lang))
             {
                 visualNode.AppendFormat(" lang='{0}'", Util.HttpEncode(Lang));
@@ -175,28 +190,424 @@ namespace NotificationsExtensions.TileContent
             visualNode.Append(">");
 
             StringBuilder builder = new StringBuilder(String.Empty);
-            builder.AppendFormat("<tile>{0}<binding template='{1}'>{2}</binding>", visualNode, TemplateName, SerializeProperties(Lang, BaseUri, AddImageQuery));
-            if (SquareContent != null)
+            builder.AppendFormat("<tile>{0}", visualNode);
+            if (Square150x150Content != null)
             {
-                ISquareTileInternal squareBase = SquareContent as ISquareTileInternal;
+                ISquare150x150TileInternal squareBase = Square150x150Content as ISquare150x150TileInternal;
                 if (squareBase == null)
                 {
                     throw new NotificationContentValidationException("The provided square tile content class is unsupported.");
                 }
                 builder.Append(squareBase.SerializeBinding(Lang, BaseUri, Branding, AddImageQuery));
             }
-            builder.Append("</visual></tile>");
+            builder.AppendFormat("<binding template='{0}'", TemplateName);
+            if (!String.IsNullOrWhiteSpace(FallbackName))
+            {
+                builder.AppendFormat(" fallback='{0}'", FallbackName);
+            }
+            builder.AppendFormat(">{0}</binding></visual></tile>", SerializeProperties(Lang, BaseUri, AddImageQuery));
+            return builder.ToString();
+        }
+
+        public string SerializeBindings(string globalLang, string globalBaseUri, TileBranding globalBranding, bool globalAddImageQuery)
+        {
+            StringBuilder bindingNode = new StringBuilder(String.Empty);
+            if (Square150x150Content != null)
+            {
+                ISquare150x150TileInternal squareBase = Square150x150Content as ISquare150x150TileInternal;
+                if (squareBase == null)
+                {
+                    throw new NotificationContentValidationException("The provided square tile content class is unsupported.");
+                }
+                bindingNode.Append(squareBase.SerializeBinding(Lang, BaseUri, Branding, AddImageQuery));
+            }
+
+            bindingNode.AppendFormat("<binding template='{0}'", TemplateName);
+            if (!String.IsNullOrWhiteSpace(FallbackName))
+            {
+                bindingNode.AppendFormat(" fallback='{0}'", FallbackName);
+            }
+            if (!String.IsNullOrWhiteSpace(Lang) && !Lang.Equals(globalLang))
+            {
+                bindingNode.AppendFormat(" lang='{0}'", Util.HttpEncode(Lang));
+                globalLang = Lang;
+            }
+            if (Branding != TileBranding.Logo && Branding != globalBranding)
+            {
+                bindingNode.AppendFormat(" branding='{0}'", Branding.ToString().ToLowerInvariant());
+            }
+            if (!String.IsNullOrWhiteSpace(BaseUri) && !BaseUri.Equals(globalBaseUri))
+            {
+                bindingNode.AppendFormat(" baseUri='{0}'", Util.HttpEncode(BaseUri));
+                globalBaseUri = BaseUri;
+            }
+            if (AddImageQueryNullable != null && AddImageQueryNullable != globalAddImageQuery)
+            {
+                bindingNode.AppendFormat(" addImageQuery='{0}'", AddImageQuery.ToString().ToLowerInvariant());
+                globalAddImageQuery = AddImageQuery;
+            }
+            bindingNode.AppendFormat(">{0}</binding>", SerializeProperties(globalLang, globalBaseUri, globalAddImageQuery));
+
+            return bindingNode.ToString();
+        }
+
+        private ISquare150x150TileNotificationContent m_Square150x150Content = null;
+        private bool m_RequireSquare150x150Content = true;
+    }
+
+    internal class TileSquare310x310Base : TileNotificationBase
+    {
+        public TileSquare310x310Base(string templateName, string fallbackName, int imageCount, int textCount)
+            : base(templateName, null, imageCount, textCount)
+        {
+        }
+
+        public IWide310x150TileNotificationContent Wide310x150Content
+        {
+            get { return m_Wide310x150Content; }
+            set { m_Wide310x150Content = value; }
+        }
+
+        public bool RequireWide310x150Content
+        {
+            get { return m_RequireWide310x150Content; }
+            set { m_RequireWide310x150Content = value; }
+        }
+
+        public override string GetContent()
+        {
+            if (RequireWide310x150Content && Wide310x150Content == null)
+            {
+                throw new NotificationContentValidationException(
+                    "Wide310x150 tile content should be included with each large tile. " +
+                    "If this behavior is undesired, use the RequireWide310x150Content property.");
+            }
+
+            if (Wide310x150Content != null && Wide310x150Content.RequireSquare150x150Content && Wide310x150Content.Square150x150Content == null)
+            {
+                throw new NotificationContentValidationException(
+                    "This tile's wide content requires square content. " +
+                    "If this behavior is undesired, use the Wide310x150Content.RequireSquare150x150Content property.");
+            }
+
+            StringBuilder visualNode = new StringBuilder(String.Empty);
+            visualNode.AppendFormat("<visual version='{0}'", TileUtil.NOTIFICATION_CONTENT_VERSION);
+            if (!String.IsNullOrWhiteSpace(Lang))
+            {
+                visualNode.AppendFormat(" lang='{0}'", Util.HttpEncode(Lang));
+            }
+            if (Branding != TileBranding.Logo)
+            {
+                visualNode.AppendFormat(" branding='{0}'", Branding.ToString().ToLowerInvariant());
+            }
+            if (!String.IsNullOrWhiteSpace(BaseUri))
+            {
+                visualNode.AppendFormat(" baseUri='{0}'", Util.HttpEncode(BaseUri));
+            }
+            if (AddImageQuery)
+            {
+                visualNode.AppendFormat(" addImageQuery='true'");
+            }
+            visualNode.Append(">");
+
+            StringBuilder builder = new StringBuilder(String.Empty);
+            builder.AppendFormat("<tile>{0}", visualNode);
+            if (Wide310x150Content != null)
+            {
+                IWide310x150TileInternal wideBase = Wide310x150Content as IWide310x150TileInternal;
+                if (wideBase == null)
+                {
+                    throw new NotificationContentValidationException("The provided wide tile content class is unsupported.");
+                }
+                builder.Append(wideBase.SerializeBindings(Lang, BaseUri, Branding, AddImageQuery));
+            }
+            builder.AppendFormat("<binding template='{0}'", TemplateName);
+            if (!String.IsNullOrWhiteSpace(FallbackName))
+            {
+                builder.AppendFormat(" fallback='{0}'", FallbackName);
+            }
+            builder.AppendFormat(">{0}</binding></visual></tile>", SerializeProperties(Lang, BaseUri, AddImageQuery));
 
             return builder.ToString();
         }
 
-        private ISquareTileNotificationContent m_SquareContent = null;
-        private bool m_RequireSquareContent = true;
+        private IWide310x150TileNotificationContent m_Wide310x150Content = null;
+        private bool m_RequireWide310x150Content = true;
     }
 
-    internal class TileSquareBlock : TileSquareBase, ITileSquareBlock
+    internal interface ISquare99x99TileInternal
     {
-        public TileSquareBlock() : base(templateName: "TileSquareBlock", imageCount: 0, textCount: 2)
+        string SerializeBinding(string globalLang, string globalBaseUri, TileBranding globalBranding, bool globalAddImageQuery);
+    }
+
+    internal class TileSquare99x99Base : TileNotificationBase, ISquare99x99TileInternal
+    {
+        public TileSquare99x99Base(string templateName, string fallbackName, int imageCount, int textCount)
+            : base(templateName, fallbackName, imageCount, textCount)
+        {
+        }
+
+        public override string GetContent()
+        {
+            StringBuilder builder = new StringBuilder(String.Empty);
+            builder.AppendFormat("<tile><visual version='{0}'", TileUtil.NOTIFICATION_CONTENT_VERSION);
+            if (!String.IsNullOrWhiteSpace(Lang))
+            {
+                builder.AppendFormat(" lang='{0}'", Util.HttpEncode(Lang));
+            }
+            if (Branding != TileBranding.Logo)
+            {
+                builder.AppendFormat(" branding='{0}'", Branding.ToString().ToLowerInvariant());
+            }
+            if (!String.IsNullOrWhiteSpace(BaseUri))
+            {
+                builder.AppendFormat(" baseUri='{0}'", Util.HttpEncode(BaseUri));
+            }
+            if (AddImageQuery)
+            {
+                builder.AppendFormat(" addImageQuery='true'");
+            }
+            builder.Append(">");
+            builder.Append(SerializeBinding(Lang, BaseUri, Branding, AddImageQuery));
+            builder.Append("</visual></tile>");
+            return builder.ToString();
+        }
+
+        public string SerializeBinding(string globalLang, string globalBaseUri, TileBranding globalBranding, bool globalAddImageQuery)
+        {
+            StringBuilder bindingNode = new StringBuilder(String.Empty);
+            bindingNode.AppendFormat("<binding template='{0}'", TemplateName);
+            if (!String.IsNullOrWhiteSpace(FallbackName))
+            {
+                bindingNode.AppendFormat(" fallback='{0}'", FallbackName);
+            }
+            if (!String.IsNullOrWhiteSpace(Lang) && !Lang.Equals(globalLang))
+            {
+                bindingNode.AppendFormat(" lang='{0}'", Util.HttpEncode(Lang));
+                globalLang = Lang;
+            }
+            if (Branding != TileBranding.Logo && Branding != globalBranding)
+            {
+                bindingNode.AppendFormat(" branding='{0}'", Branding.ToString().ToLowerInvariant());
+            }
+            if (!String.IsNullOrWhiteSpace(BaseUri) && !BaseUri.Equals(globalBaseUri))
+            {
+                bindingNode.AppendFormat(" baseUri='{0}'", Util.HttpEncode(BaseUri));
+                globalBaseUri = BaseUri;
+            }
+            if (AddImageQueryNullable != null && AddImageQueryNullable != globalAddImageQuery)
+            {
+                bindingNode.AppendFormat(" addImageQuery='{0}'", AddImageQuery.ToString().ToLowerInvariant());
+                globalAddImageQuery = AddImageQuery;
+            }
+            bindingNode.AppendFormat(">{0}</binding>", SerializeProperties(globalLang, globalBaseUri, globalAddImageQuery));
+
+            return bindingNode.ToString();
+        }
+    }
+
+    internal interface ISquare210x210TileInternal
+    {
+        string SerializeBindings(string globalLang, string globalBaseUri, TileBranding globalBranding, bool globalAddImageQuery);
+    }
+
+    internal class TileSquare210x210Base : TileNotificationBase, ISquare210x210TileInternal
+    {
+        public TileSquare210x210Base(string templateName, string fallbackName, int imageCount, int textCount)
+            : base(templateName, fallbackName, imageCount, textCount)
+        {
+        }
+
+        public ISquare99x99TileNotificationContent Square99x99Content
+        {
+            get { return m_Square99x99Content; }
+            set { m_Square99x99Content = value; }
+        }
+
+        public bool RequireSquare99x99Content
+        {
+            get { return m_RequireSquare99x99Content; }
+            set { m_RequireSquare99x99Content = value; }
+        }
+
+        public override string GetContent()
+        {
+            if (RequireSquare99x99Content && Square99x99Content == null)
+            {
+                throw new NotificationContentValidationException(
+                    "Square99x99 tile content should be included with each medium tile. " +
+                    "If this behavior is undesired, use the RequireSquare99x99Content property.");
+            }
+
+            StringBuilder visualNode = new StringBuilder(String.Empty);
+            visualNode.AppendFormat("<visual version='{0}'", TileUtil.NOTIFICATION_CONTENT_VERSION);
+            if (!String.IsNullOrWhiteSpace(Lang))
+            {
+                visualNode.AppendFormat(" lang='{0}'", Util.HttpEncode(Lang));
+            }
+            if (Branding != TileBranding.Logo)
+            {
+                visualNode.AppendFormat(" branding='{0}'", Branding.ToString().ToLowerInvariant());
+            }
+            if (!String.IsNullOrWhiteSpace(BaseUri))
+            {
+                visualNode.AppendFormat(" baseUri='{0}'", Util.HttpEncode(BaseUri));
+            }
+            if (AddImageQuery)
+            {
+                visualNode.AppendFormat(" addImageQuery='true'");
+            }
+            visualNode.Append(">");
+
+            StringBuilder builder = new StringBuilder(String.Empty);
+            builder.AppendFormat("<tile>{0}", visualNode);
+            if (Square99x99Content != null)
+            {
+                ISquare99x99TileInternal smallTileBase = Square99x99Content as ISquare99x99TileInternal;
+                if (smallTileBase == null)
+                {
+                    throw new NotificationContentValidationException("The provided small tile content class is unsupported.");
+                }
+                builder.Append(smallTileBase.SerializeBinding(Lang, BaseUri, Branding, AddImageQuery));
+            }
+            builder.AppendFormat("<binding template='{0}'", TemplateName);
+            if (!String.IsNullOrWhiteSpace(FallbackName))
+            {
+                builder.AppendFormat(" fallback='{0}'", FallbackName);
+            }
+            builder.AppendFormat(">{0}</binding></visual></tile>", SerializeProperties(Lang, BaseUri, AddImageQuery));
+            return builder.ToString();
+        }
+
+        public string SerializeBindings(string globalLang, string globalBaseUri, TileBranding globalBranding, bool globalAddImageQuery)
+        {
+            StringBuilder bindingNode = new StringBuilder(String.Empty);
+            if (Square99x99Content != null)
+            {
+                ISquare99x99TileInternal smallTileBase = Square99x99Content as ISquare99x99TileInternal;
+                if (smallTileBase == null)
+                {
+                    throw new NotificationContentValidationException("The provided small tile content class is unsupported.");
+                }
+                bindingNode.Append(smallTileBase.SerializeBinding(Lang, BaseUri, Branding, AddImageQuery));
+            }
+
+            bindingNode.AppendFormat("<binding template='{0}'", TemplateName);
+            if (!String.IsNullOrWhiteSpace(FallbackName))
+            {
+                bindingNode.AppendFormat(" fallback='{0}'", FallbackName);
+            }
+            if (!String.IsNullOrWhiteSpace(Lang) && !Lang.Equals(globalLang))
+            {
+                bindingNode.AppendFormat(" lang='{0}'", Util.HttpEncode(Lang));
+                globalLang = Lang;
+            }
+            if (Branding != TileBranding.Logo && Branding != globalBranding)
+            {
+                bindingNode.AppendFormat(" branding='{0}'", Branding.ToString().ToLowerInvariant());
+            }
+            if (!String.IsNullOrWhiteSpace(BaseUri) && !BaseUri.Equals(globalBaseUri))
+            {
+                bindingNode.AppendFormat(" baseUri='{0}'", Util.HttpEncode(BaseUri));
+                globalBaseUri = BaseUri;
+            }
+            if (AddImageQueryNullable != null && AddImageQueryNullable != globalAddImageQuery)
+            {
+                bindingNode.AppendFormat(" addImageQuery='{0}'", AddImageQuery.ToString().ToLowerInvariant());
+                globalAddImageQuery = AddImageQuery;
+            }
+            bindingNode.AppendFormat(">{0}</binding>", SerializeProperties(globalLang, globalBaseUri, globalAddImageQuery));
+
+            return bindingNode.ToString();
+        }
+
+        private ISquare99x99TileNotificationContent m_Square99x99Content = null;
+        private bool m_RequireSquare99x99Content = true;
+    }
+
+    internal class TileWide432x210Base : TileNotificationBase
+    {
+        public TileWide432x210Base(string templateName, string fallbackName, int imageCount, int textCount)
+            : base(templateName, null, imageCount, textCount)
+        {
+        }
+
+        public ISquare210x210TileNotificationContent Square210x210Content
+        {
+            get { return m_Square210x210Content; }
+            set { m_Square210x210Content = value; }
+        }
+
+        public bool RequireSquare210x210Content
+        {
+            get { return m_RequireSquare210x210Content; }
+            set { m_RequireSquare210x210Content = value; }
+        }
+
+        public override string GetContent()
+        {
+            if (RequireSquare210x210Content && Square210x210Content == null)
+            {
+                throw new NotificationContentValidationException(
+                    "Square210x210 tile content should be included with each large tile. " +
+                    "If this behavior is undesired, use the RequireSquare210x210Content property.");
+            }
+
+            if (Square210x210Content != null && Square210x210Content.RequireSquare99x99Content && Square210x210Content.Square99x99Content == null)
+            {
+                throw new NotificationContentValidationException(
+                    "This tile's medium tile content requires small tile content. " +
+                    "If this behavior is undesired, use the Square210x210Content.RequireSquare99x99Content property.");
+            }
+
+            StringBuilder visualNode = new StringBuilder(String.Empty);
+            visualNode.AppendFormat("<visual version='{0}'", TileUtil.NOTIFICATION_CONTENT_VERSION);
+            if (!String.IsNullOrWhiteSpace(Lang))
+            {
+                visualNode.AppendFormat(" lang='{0}'", Util.HttpEncode(Lang));
+            }
+            if (Branding != TileBranding.Logo)
+            {
+                visualNode.AppendFormat(" branding='{0}'", Branding.ToString().ToLowerInvariant());
+            }
+            if (!String.IsNullOrWhiteSpace(BaseUri))
+            {
+                visualNode.AppendFormat(" baseUri='{0}'", Util.HttpEncode(BaseUri));
+            }
+            if (AddImageQuery)
+            {
+                visualNode.AppendFormat(" addImageQuery='true'");
+            }
+            visualNode.Append(">");
+
+            StringBuilder builder = new StringBuilder(String.Empty);
+            builder.AppendFormat("<tile>{0}", visualNode);
+            if (Square210x210Content != null)
+            {
+                ISquare210x210TileInternal mediumTileBase = Square210x210Content as ISquare210x210TileInternal;
+                if (mediumTileBase == null)
+                {
+                    throw new NotificationContentValidationException("The provided medium tile content class is unsupported.");
+                }
+                builder.Append(mediumTileBase.SerializeBindings(Lang, BaseUri, Branding, AddImageQuery));
+            }
+            builder.AppendFormat("<binding template='{0}'", TemplateName);
+            if (!String.IsNullOrWhiteSpace(FallbackName))
+            {
+                builder.AppendFormat(" fallback='{0}'", FallbackName);
+            }
+            builder.AppendFormat(">{0}</binding></visual></tile>", SerializeProperties(Lang, BaseUri, AddImageQuery));
+
+            return builder.ToString();
+        }
+
+        private ISquare210x210TileNotificationContent m_Square210x210Content = null;
+        private bool m_RequireSquare210x210Content = true;
+    }
+
+    internal class TileSquare150x150Block : TileSquare150x150Base, ITileSquare150x150Block
+    {
+        public TileSquare150x150Block() : base(templateName: "TileSquare150x150Block",  fallbackName: "TileSquareBlock", imageCount: 0, textCount: 2)
         {
         }
 
@@ -204,18 +615,18 @@ namespace NotificationsExtensions.TileContent
         public INotificationContentText TextSubBlock { get { return TextFields[1]; } }
     }
 
-    internal class TileSquareImage : TileSquareBase, ITileSquareImage
+    internal class TileSquare150x150Image : TileSquare150x150Base, ITileSquare150x150Image
     {
-        public TileSquareImage() : base(templateName: "TileSquareImage", imageCount: 1, textCount: 0)
+        public TileSquare150x150Image() : base(templateName: "TileSquare150x150Image",  fallbackName: "TileSquareImage", imageCount: 1, textCount: 0)
         {
         }
 
         public INotificationContentImage Image { get { return Images[0]; } }
     }
 
-    internal class TileSquarePeekImageAndText01 : TileSquareBase, ITileSquarePeekImageAndText01
+    internal class TileSquare150x150PeekImageAndText01 : TileSquare150x150Base, ITileSquare150x150PeekImageAndText01
     {
-        public TileSquarePeekImageAndText01() : base(templateName: "TileSquarePeekImageAndText01", imageCount: 1, textCount: 4)
+        public TileSquare150x150PeekImageAndText01() : base(templateName: "TileSquare150x150PeekImageAndText01",  fallbackName: "TileSquarePeekImageAndText01", imageCount: 1, textCount: 4)
         {
         }
 
@@ -227,9 +638,9 @@ namespace NotificationsExtensions.TileContent
         public INotificationContentText TextBody3 { get { return TextFields[3]; } }
     }
 
-    internal class TileSquarePeekImageAndText02 : TileSquareBase, ITileSquarePeekImageAndText02
+    internal class TileSquare150x150PeekImageAndText02 : TileSquare150x150Base, ITileSquare150x150PeekImageAndText02
     {
-        public TileSquarePeekImageAndText02() : base(templateName: "TileSquarePeekImageAndText02", imageCount: 1, textCount: 2)
+        public TileSquare150x150PeekImageAndText02() : base(templateName: "TileSquare150x150PeekImageAndText02",  fallbackName: "TileSquarePeekImageAndText02", imageCount: 1, textCount: 2)
         {
         }
 
@@ -239,9 +650,9 @@ namespace NotificationsExtensions.TileContent
         public INotificationContentText TextBodyWrap { get { return TextFields[1]; } }
     }
 
-    internal class TileSquarePeekImageAndText03 : TileSquareBase, ITileSquarePeekImageAndText03
+    internal class TileSquare150x150PeekImageAndText03 : TileSquare150x150Base, ITileSquare150x150PeekImageAndText03
     {
-        public TileSquarePeekImageAndText03() : base(templateName: "TileSquarePeekImageAndText03", imageCount: 1, textCount: 4)
+        public TileSquare150x150PeekImageAndText03() : base(templateName: "TileSquare150x150PeekImageAndText03",  fallbackName: "TileSquarePeekImageAndText03", imageCount: 1, textCount: 4)
         {
         }
 
@@ -253,9 +664,9 @@ namespace NotificationsExtensions.TileContent
         public INotificationContentText TextBody4 { get { return TextFields[3]; } }
     }
 
-    internal class TileSquarePeekImageAndText04 : TileSquareBase, ITileSquarePeekImageAndText04
+    internal class TileSquare150x150PeekImageAndText04 : TileSquare150x150Base, ITileSquare150x150PeekImageAndText04
     {
-        public TileSquarePeekImageAndText04() : base(templateName: "TileSquarePeekImageAndText04", imageCount: 1, textCount: 1)
+        public TileSquare150x150PeekImageAndText04() : base(templateName: "TileSquare150x150PeekImageAndText04",  fallbackName: "TileSquarePeekImageAndText04", imageCount: 1, textCount: 1)
         {
         }
 
@@ -264,9 +675,9 @@ namespace NotificationsExtensions.TileContent
         public INotificationContentText TextBodyWrap { get { return TextFields[0]; } }
     }
 
-    internal class TileSquareText01 : TileSquareBase, ITileSquareText01
+    internal class TileSquare150x150Text01 : TileSquare150x150Base, ITileSquare150x150Text01
     {
-        public TileSquareText01() : base(templateName: "TileSquareText01", imageCount: 0, textCount: 4)
+        public TileSquare150x150Text01() : base(templateName: "TileSquare150x150Text01",  fallbackName: "TileSquareText01", imageCount: 0, textCount: 4)
         {
         }
 
@@ -276,9 +687,9 @@ namespace NotificationsExtensions.TileContent
         public INotificationContentText TextBody3 { get { return TextFields[3]; } }
     }
 
-    internal class TileSquareText02 : TileSquareBase, ITileSquareText02
+    internal class TileSquare150x150Text02 : TileSquare150x150Base, ITileSquare150x150Text02
     {
-        public TileSquareText02() : base(templateName: "TileSquareText02", imageCount: 0, textCount: 2)
+        public TileSquare150x150Text02() : base(templateName: "TileSquare150x150Text02",  fallbackName: "TileSquareText02", imageCount: 0, textCount: 2)
         {
         }
 
@@ -286,9 +697,9 @@ namespace NotificationsExtensions.TileContent
         public INotificationContentText TextBodyWrap { get { return TextFields[1]; } }
     }
 
-    internal class TileSquareText03 : TileSquareBase, ITileSquareText03
+    internal class TileSquare150x150Text03 : TileSquare150x150Base, ITileSquare150x150Text03
     {
-        public TileSquareText03() : base(templateName: "TileSquareText03", imageCount: 0, textCount: 4) 
+        public TileSquare150x150Text03() : base(templateName: "TileSquare150x150Text03",  fallbackName: "TileSquareText03", imageCount: 0, textCount: 4) 
         {
         }
 
@@ -298,18 +709,18 @@ namespace NotificationsExtensions.TileContent
         public INotificationContentText TextBody4 { get { return TextFields[3]; } }
     }
 
-    internal class TileSquareText04 : TileSquareBase, ITileSquareText04
+    internal class TileSquare150x150Text04 : TileSquare150x150Base, ITileSquare150x150Text04
     {
-        public TileSquareText04() : base(templateName: "TileSquareText04", imageCount: 0, textCount: 1)
+        public TileSquare150x150Text04() : base(templateName: "TileSquare150x150Text04",  fallbackName: "TileSquareText04", imageCount: 0, textCount: 1)
         {
         }
 
         public INotificationContentText TextBodyWrap { get { return TextFields[0]; } }
     }
 
-    internal class TileWideBlockAndText01 : TileWideBase, ITileWideBlockAndText01
+    internal class TileWide310x150BlockAndText01 : TileWide310x150Base, ITileWide310x150BlockAndText01
     {
-        public TileWideBlockAndText01() : base(templateName: "TileWideBlockAndText01", imageCount: 0, textCount: 6)
+        public TileWide310x150BlockAndText01() : base(templateName: "TileWide310x150BlockAndText01",  fallbackName: "TileWideBlockAndText01", imageCount: 0, textCount: 6)
         {
         }
 
@@ -321,9 +732,9 @@ namespace NotificationsExtensions.TileContent
         public INotificationContentText TextSubBlock { get { return TextFields[5]; } }
     }
 
-    internal class TileWideBlockAndText02 : TileWideBase, ITileWideBlockAndText02
+    internal class TileWide310x150BlockAndText02 : TileWide310x150Base, ITileWide310x150BlockAndText02
     {
-        public TileWideBlockAndText02() : base(templateName: "TileWideBlockAndText02", imageCount: 0, textCount: 6)
+        public TileWide310x150BlockAndText02() : base(templateName: "TileWide310x150BlockAndText02",  fallbackName: "TileWideBlockAndText02", imageCount: 0, textCount: 6)
         {
         }
 
@@ -332,18 +743,18 @@ namespace NotificationsExtensions.TileContent
         public INotificationContentText TextSubBlock { get { return TextFields[2]; } }
     }
 
-    internal class TileWideImage : TileWideBase, ITileWideImage
+    internal class TileWide310x150Image : TileWide310x150Base, ITileWide310x150Image
     {
-        public TileWideImage() : base(templateName: "TileWideImage", imageCount: 1, textCount: 0)
+        public TileWide310x150Image() : base(templateName: "TileWide310x150Image",  fallbackName: "TileWideImage", imageCount: 1, textCount: 0)
         {
         }
 
         public INotificationContentImage Image { get { return Images[0]; } }
     }
 
-    internal class TileWideImageAndText01 : TileWideBase, ITileWideImageAndText01
+    internal class TileWide310x150ImageAndText01 : TileWide310x150Base, ITileWide310x150ImageAndText01
     {
-        public TileWideImageAndText01() : base(templateName: "TileWideImageAndText01", imageCount: 1, textCount: 1)
+        public TileWide310x150ImageAndText01() : base(templateName: "TileWide310x150ImageAndText01",  fallbackName: "TileWideImageAndText01", imageCount: 1, textCount: 1)
         {
         }
 
@@ -352,9 +763,9 @@ namespace NotificationsExtensions.TileContent
         public INotificationContentText TextCaptionWrap { get { return TextFields[0]; } }
     }
 
-    internal class TileWideImageAndText02 : TileWideBase, ITileWideImageAndText02
+    internal class TileWide310x150ImageAndText02 : TileWide310x150Base, ITileWide310x150ImageAndText02
     {
-        public TileWideImageAndText02() : base(templateName: "TileWideImageAndText02", imageCount: 1, textCount: 2)
+        public TileWide310x150ImageAndText02() : base(templateName: "TileWide310x150ImageAndText02",  fallbackName: "TileWideImageAndText02", imageCount: 1, textCount: 2)
         {
         }
 
@@ -364,9 +775,9 @@ namespace NotificationsExtensions.TileContent
         public INotificationContentText TextCaption2 { get { return TextFields[1]; } }
     }
 
-    internal class TileWideImageCollection : TileWideBase, ITileWideImageCollection
+    internal class TileWide310x150ImageCollection : TileWide310x150Base, ITileWide310x150ImageCollection
     {
-        public TileWideImageCollection() : base(templateName: "TileWideImageCollection", imageCount: 5, textCount: 0)
+        public TileWide310x150ImageCollection() : base(templateName: "TileWide310x150ImageCollection",  fallbackName: "TileWideImageCollection", imageCount: 5, textCount: 0)
         {
         }
 
@@ -377,9 +788,9 @@ namespace NotificationsExtensions.TileContent
         public INotificationContentImage ImageSmallColumn2Row2 { get { return Images[4]; } }
     }
 
-    internal class TileWidePeekImage01 : TileWideBase, ITileWidePeekImage01
+    internal class TileWide310x150PeekImage01 : TileWide310x150Base, ITileWide310x150PeekImage01
     {
-        public TileWidePeekImage01() : base(templateName: "TileWidePeekImage01", imageCount: 1, textCount: 2)
+        public TileWide310x150PeekImage01() : base(templateName: "TileWide310x150PeekImage01",  fallbackName: "TileWidePeekImage01", imageCount: 1, textCount: 2)
         {
         }
 
@@ -389,9 +800,9 @@ namespace NotificationsExtensions.TileContent
         public INotificationContentText TextBodyWrap { get { return TextFields[1]; } }
     }
 
-    internal class TileWidePeekImage02 : TileWideBase, ITileWidePeekImage02
+    internal class TileWide310x150PeekImage02 : TileWide310x150Base, ITileWide310x150PeekImage02
     {
-        public TileWidePeekImage02() : base(templateName: "TileWidePeekImage02", imageCount: 1, textCount: 5)
+        public TileWide310x150PeekImage02() : base(templateName: "TileWide310x150PeekImage02",  fallbackName: "TileWidePeekImage02", imageCount: 1, textCount: 5)
         {
         }
 
@@ -404,9 +815,9 @@ namespace NotificationsExtensions.TileContent
         public INotificationContentText TextBody4 { get { return TextFields[4]; } }
     }
 
-    internal class TileWidePeekImage03 : TileWideBase, ITileWidePeekImage03
+    internal class TileWide310x150PeekImage03 : TileWide310x150Base, ITileWide310x150PeekImage03
     {
-        public TileWidePeekImage03() : base(templateName: "TileWidePeekImage03", imageCount: 1, textCount: 1)
+        public TileWide310x150PeekImage03() : base(templateName: "TileWide310x150PeekImage03",  fallbackName: "TileWidePeekImage03", imageCount: 1, textCount: 1)
         {
         }
 
@@ -415,9 +826,9 @@ namespace NotificationsExtensions.TileContent
         public INotificationContentText TextHeadingWrap { get { return TextFields[0]; } }
     }
 
-    internal class TileWidePeekImage04 : TileWideBase, ITileWidePeekImage04
+    internal class TileWide310x150PeekImage04 : TileWide310x150Base, ITileWide310x150PeekImage04
     {
-        public TileWidePeekImage04() : base(templateName: "TileWidePeekImage04", imageCount: 1, textCount: 1)
+        public TileWide310x150PeekImage04() : base(templateName: "TileWide310x150PeekImage04",  fallbackName: "TileWidePeekImage04", imageCount: 1, textCount: 1)
         {
         }
 
@@ -426,9 +837,9 @@ namespace NotificationsExtensions.TileContent
         public INotificationContentText TextBodyWrap { get { return TextFields[0]; } }
     }
 
-    internal class TileWidePeekImage05 : TileWideBase, ITileWidePeekImage05
+    internal class TileWide310x150PeekImage05 : TileWide310x150Base, ITileWide310x150PeekImage05
     {
-        public TileWidePeekImage05() : base(templateName: "TileWidePeekImage05", imageCount: 2, textCount: 2)
+        public TileWide310x150PeekImage05() : base(templateName: "TileWide310x150PeekImage05",  fallbackName: "TileWidePeekImage05", imageCount: 2, textCount: 2)
         {
         }
 
@@ -439,9 +850,9 @@ namespace NotificationsExtensions.TileContent
         public INotificationContentText TextBodyWrap { get { return TextFields[1]; } }
     }
 
-    internal class TileWidePeekImage06 : TileWideBase, ITileWidePeekImage06
+    internal class TileWide310x150PeekImage06 : TileWide310x150Base, ITileWide310x150PeekImage06
     {
-        public TileWidePeekImage06() : base(templateName: "TileWidePeekImage06", imageCount: 2, textCount: 1)
+        public TileWide310x150PeekImage06() : base(templateName: "TileWide310x150PeekImage06",  fallbackName: "TileWidePeekImage06", imageCount: 2, textCount: 1)
         {
         }
 
@@ -451,9 +862,9 @@ namespace NotificationsExtensions.TileContent
         public INotificationContentText TextHeadingWrap { get { return TextFields[0]; } }
     }
 
-    internal class TileWidePeekImageAndText01 : TileWideBase, ITileWidePeekImageAndText01
+    internal class TileWide310x150PeekImageAndText01 : TileWide310x150Base, ITileWide310x150PeekImageAndText01
     {
-        public TileWidePeekImageAndText01() : base(templateName: "TileWidePeekImageAndText01", imageCount: 1, textCount: 1) 
+        public TileWide310x150PeekImageAndText01() : base(templateName: "TileWide310x150PeekImageAndText01",  fallbackName: "TileWidePeekImageAndText01", imageCount: 1, textCount: 1) 
         {
         }
 
@@ -462,9 +873,9 @@ namespace NotificationsExtensions.TileContent
         public INotificationContentText TextBodyWrap { get { return TextFields[0]; } }
     }
 
-    internal class TileWidePeekImageAndText02 : TileWideBase, ITileWidePeekImageAndText02
+    internal class TileWide310x150PeekImageAndText02 : TileWide310x150Base, ITileWide310x150PeekImageAndText02
     {
-        public TileWidePeekImageAndText02() : base(templateName: "TileWidePeekImageAndText02", imageCount: 1, textCount: 5) 
+        public TileWide310x150PeekImageAndText02() : base(templateName: "TileWide310x150PeekImageAndText02",  fallbackName: "TileWidePeekImageAndText02", imageCount: 1, textCount: 5) 
         {
         }
 
@@ -477,9 +888,9 @@ namespace NotificationsExtensions.TileContent
         public INotificationContentText TextBody5 { get { return TextFields[4]; } }
     }
 
-    internal class TileWidePeekImageCollection01 : TileWideBase, ITileWidePeekImageCollection01
+    internal class TileWide310x150PeekImageCollection01 : TileWide310x150Base, ITileWide310x150PeekImageCollection01
     {
-        public TileWidePeekImageCollection01() : base(templateName: "TileWidePeekImageCollection01", imageCount: 5, textCount: 2)
+        public TileWide310x150PeekImageCollection01() : base(templateName: "TileWide310x150PeekImageCollection01",  fallbackName: "TileWidePeekImageCollection01", imageCount: 5, textCount: 2)
         {
         }
 
@@ -493,9 +904,9 @@ namespace NotificationsExtensions.TileContent
         public INotificationContentText TextBodyWrap { get { return TextFields[1]; } }
     }
 
-    internal class TileWidePeekImageCollection02 : TileWideBase, ITileWidePeekImageCollection02
+    internal class TileWide310x150PeekImageCollection02 : TileWide310x150Base, ITileWide310x150PeekImageCollection02
     {
-        public TileWidePeekImageCollection02() : base(templateName: "TileWidePeekImageCollection02", imageCount: 5, textCount: 5)
+        public TileWide310x150PeekImageCollection02() : base(templateName: "TileWide310x150PeekImageCollection02",  fallbackName: "TileWidePeekImageCollection02", imageCount: 5, textCount: 5)
         {
         }
 
@@ -512,9 +923,9 @@ namespace NotificationsExtensions.TileContent
         public INotificationContentText TextBody4 { get { return TextFields[4]; } }
     }
 
-    internal class TileWidePeekImageCollection03 : TileWideBase, ITileWidePeekImageCollection03
+    internal class TileWide310x150PeekImageCollection03 : TileWide310x150Base, ITileWide310x150PeekImageCollection03
     {
-        public TileWidePeekImageCollection03() : base(templateName: "TileWidePeekImageCollection03", imageCount: 5, textCount: 1)
+        public TileWide310x150PeekImageCollection03() : base(templateName: "TileWide310x150PeekImageCollection03",  fallbackName: "TileWidePeekImageCollection03", imageCount: 5, textCount: 1)
         {
         }
 
@@ -527,9 +938,9 @@ namespace NotificationsExtensions.TileContent
         public INotificationContentText TextHeadingWrap { get { return TextFields[0]; } }
     }
 
-    internal class TileWidePeekImageCollection04 : TileWideBase, ITileWidePeekImageCollection04
+    internal class TileWide310x150PeekImageCollection04 : TileWide310x150Base, ITileWide310x150PeekImageCollection04
     {
-        public TileWidePeekImageCollection04() : base(templateName: "TileWidePeekImageCollection04", imageCount: 5, textCount: 1)
+        public TileWide310x150PeekImageCollection04() : base(templateName: "TileWide310x150PeekImageCollection04",  fallbackName: "TileWidePeekImageCollection04", imageCount: 5, textCount: 1)
         {
         }
 
@@ -542,9 +953,9 @@ namespace NotificationsExtensions.TileContent
         public INotificationContentText TextBodyWrap { get { return TextFields[0]; } }
     }
 
-    internal class TileWidePeekImageCollection05 : TileWideBase, ITileWidePeekImageCollection05
+    internal class TileWide310x150PeekImageCollection05 : TileWide310x150Base, ITileWide310x150PeekImageCollection05
     {
-        public TileWidePeekImageCollection05() : base(templateName: "TileWidePeekImageCollection05", imageCount: 6, textCount: 2)
+        public TileWide310x150PeekImageCollection05() : base(templateName: "TileWide310x150PeekImageCollection05",  fallbackName: "TileWidePeekImageCollection05", imageCount: 6, textCount: 2)
         {
         }
 
@@ -559,9 +970,9 @@ namespace NotificationsExtensions.TileContent
         public INotificationContentText TextBodyWrap { get { return TextFields[1]; } }
     }
 
-    internal class TileWidePeekImageCollection06 : TileWideBase, ITileWidePeekImageCollection06
+    internal class TileWide310x150PeekImageCollection06 : TileWide310x150Base, ITileWide310x150PeekImageCollection06
     {
-        public TileWidePeekImageCollection06() : base(templateName: "TileWidePeekImageCollection06", imageCount: 6, textCount: 1)
+        public TileWide310x150PeekImageCollection06() : base(templateName: "TileWide310x150PeekImageCollection06",  fallbackName: "TileWidePeekImageCollection06", imageCount: 6, textCount: 1)
         {
         }
 
@@ -575,9 +986,9 @@ namespace NotificationsExtensions.TileContent
         public INotificationContentText TextHeadingWrap { get { return TextFields[0]; } }
     }
 
-    internal class TileWideSmallImageAndText01 : TileWideBase, ITileWideSmallImageAndText01
+    internal class TileWide310x150SmallImageAndText01 : TileWide310x150Base, ITileWide310x150SmallImageAndText01
     {
-        public TileWideSmallImageAndText01() : base(templateName: "TileWideSmallImageAndText01", imageCount: 1, textCount: 1)
+        public TileWide310x150SmallImageAndText01() : base(templateName: "TileWide310x150SmallImageAndText01",  fallbackName: "TileWideSmallImageAndText01", imageCount: 1, textCount: 1)
         {
         }
 
@@ -586,9 +997,9 @@ namespace NotificationsExtensions.TileContent
         public INotificationContentText TextHeadingWrap { get { return TextFields[0]; } }
     }
     
-    internal class TileWideSmallImageAndText02 : TileWideBase, ITileWideSmallImageAndText02
+    internal class TileWide310x150SmallImageAndText02 : TileWide310x150Base, ITileWide310x150SmallImageAndText02
     {
-        public TileWideSmallImageAndText02() : base(templateName: "TileWideSmallImageAndText02", imageCount: 1, textCount: 5)
+        public TileWide310x150SmallImageAndText02() : base(templateName: "TileWide310x150SmallImageAndText02",  fallbackName: "TileWideSmallImageAndText02", imageCount: 1, textCount: 5)
         {
         }
 
@@ -601,9 +1012,9 @@ namespace NotificationsExtensions.TileContent
         public INotificationContentText TextBody4 { get { return TextFields[4]; } }
     }
 
-    internal class TileWideSmallImageAndText03 : TileWideBase, ITileWideSmallImageAndText03
+    internal class TileWide310x150SmallImageAndText03 : TileWide310x150Base, ITileWide310x150SmallImageAndText03
     {
-        public TileWideSmallImageAndText03() : base(templateName: "TileWideSmallImageAndText03", imageCount: 1, textCount: 1)
+        public TileWide310x150SmallImageAndText03() : base(templateName: "TileWide310x150SmallImageAndText03",  fallbackName: "TileWideSmallImageAndText03", imageCount: 1, textCount: 1)
         {
         }
 
@@ -612,9 +1023,9 @@ namespace NotificationsExtensions.TileContent
         public INotificationContentText TextBodyWrap { get { return TextFields[0]; } }
     }
 
-    internal class TileWideSmallImageAndText04 : TileWideBase, ITileWideSmallImageAndText04
+    internal class TileWide310x150SmallImageAndText04 : TileWide310x150Base, ITileWide310x150SmallImageAndText04
     {
-        public TileWideSmallImageAndText04() : base(templateName: "TileWideSmallImageAndText04", imageCount: 1, textCount: 2)
+        public TileWide310x150SmallImageAndText04() : base(templateName: "TileWide310x150SmallImageAndText04",  fallbackName: "TileWideSmallImageAndText04", imageCount: 1, textCount: 2)
         {
         }
 
@@ -624,9 +1035,9 @@ namespace NotificationsExtensions.TileContent
         public INotificationContentText TextBodyWrap { get { return TextFields[1]; } }
     }
 
-    internal class TileWideSmallImageAndText05 : TileWideBase, ITileWideSmallImageAndText05
+    internal class TileWide310x150SmallImageAndText05 : TileWide310x150Base, ITileWide310x150SmallImageAndText05
     {
-        public TileWideSmallImageAndText05() : base(templateName: "TileWideSmallImageAndText05", imageCount: 1, textCount: 2)
+        public TileWide310x150SmallImageAndText05() : base(templateName: "TileWide310x150SmallImageAndText05",  fallbackName: "TileWideSmallImageAndText05", imageCount: 1, textCount: 2)
         {
         }
 
@@ -636,9 +1047,9 @@ namespace NotificationsExtensions.TileContent
         public INotificationContentText TextBodyWrap { get { return TextFields[1]; } }
     }
 
-    internal class TileWideText01 : TileWideBase, ITileWideText01
+    internal class TileWide310x150Text01 : TileWide310x150Base, ITileWide310x150Text01
     {
-        public TileWideText01() : base(templateName: "TileWideText01", imageCount: 0, textCount: 5)
+        public TileWide310x150Text01() : base(templateName: "TileWide310x150Text01",  fallbackName: "TileWideText01", imageCount: 0, textCount: 5)
         {
         }
 
@@ -649,9 +1060,9 @@ namespace NotificationsExtensions.TileContent
         public INotificationContentText TextBody4 { get { return TextFields[4]; } }
     }
 
-    internal class TileWideText02 : TileWideBase, ITileWideText02
+    internal class TileWide310x150Text02 : TileWide310x150Base, ITileWide310x150Text02
     {
-        public TileWideText02() : base(templateName: "TileWideText02", imageCount: 0, textCount: 9)
+        public TileWide310x150Text02() : base(templateName: "TileWide310x150Text02",  fallbackName: "TileWideText02", imageCount: 0, textCount: 9)
         {
         }
 
@@ -666,27 +1077,27 @@ namespace NotificationsExtensions.TileContent
         public INotificationContentText TextColumn2Row4 { get { return TextFields[8]; } }
     }
 
-    internal class TileWideText03 : TileWideBase, ITileWideText03
+    internal class TileWide310x150Text03 : TileWide310x150Base, ITileWide310x150Text03
     {
-        public TileWideText03() : base(templateName: "TileWideText03", imageCount: 0, textCount: 1)
+        public TileWide310x150Text03() : base(templateName: "TileWide310x150Text03",  fallbackName: "TileWideText03", imageCount: 0, textCount: 1)
         {
         }
 
         public INotificationContentText TextHeadingWrap { get { return TextFields[0]; } }
     }
 
-    internal class TileWideText04 : TileWideBase, ITileWideText04
+    internal class TileWide310x150Text04 : TileWide310x150Base, ITileWide310x150Text04
     {
-        public TileWideText04() : base(templateName: "TileWideText04", imageCount: 0, textCount: 1)
+        public TileWide310x150Text04() : base(templateName: "TileWide310x150Text04",  fallbackName: "TileWideText04", imageCount: 0, textCount: 1)
         {
         }
 
         public INotificationContentText TextBodyWrap { get { return TextFields[0]; } }
     }
 
-    internal class TileWideText05 : TileWideBase, ITileWideText05
+    internal class TileWide310x150Text05 : TileWide310x150Base, ITileWide310x150Text05
     {
-        public TileWideText05() : base(templateName: "TileWideText05", imageCount: 0, textCount: 5)
+        public TileWide310x150Text05() : base(templateName: "TileWide310x150Text05",  fallbackName: "TileWideText05", imageCount: 0, textCount: 5)
         {
         }
 
@@ -697,9 +1108,9 @@ namespace NotificationsExtensions.TileContent
         public INotificationContentText TextBody5 { get { return TextFields[4]; } }
     }
 
-    internal class TileWideText06 : TileWideBase, ITileWideText06
+    internal class TileWide310x150Text06 : TileWide310x150Base, ITileWide310x150Text06
     {
-        public TileWideText06() : base(templateName: "TileWideText06", imageCount: 0, textCount: 10)
+        public TileWide310x150Text06() : base(templateName: "TileWide310x150Text06",  fallbackName: "TileWideText06", imageCount: 0, textCount: 10)
         {
         }
 
@@ -715,9 +1126,9 @@ namespace NotificationsExtensions.TileContent
         public INotificationContentText TextColumn2Row5 { get { return TextFields[9]; } }
     }
 
-    internal class TileWideText07 : TileWideBase, ITileWideText07
+    internal class TileWide310x150Text07 : TileWide310x150Base, ITileWide310x150Text07
     {
-        public TileWideText07() : base(templateName: "TileWideText07", imageCount: 0, textCount: 9)
+        public TileWide310x150Text07() : base(templateName: "TileWide310x150Text07",  fallbackName: "TileWideText07", imageCount: 0, textCount: 9)
         {
         }
 
@@ -732,9 +1143,9 @@ namespace NotificationsExtensions.TileContent
         public INotificationContentText TextColumn2Row4 { get { return TextFields[8]; } }
     }
 
-    internal class TileWideText08 : TileWideBase, ITileWideText08
+    internal class TileWide310x150Text08 : TileWide310x150Base, ITileWide310x150Text08
     {
-        public TileWideText08() : base(templateName: "TileWideText08", imageCount: 0, textCount: 10)
+        public TileWide310x150Text08() : base(templateName: "TileWide310x150Text08",  fallbackName: "TileWideText08", imageCount: 0, textCount: 10)
         {
         }
 
@@ -750,9 +1161,9 @@ namespace NotificationsExtensions.TileContent
         public INotificationContentText TextColumn2Row5 { get { return TextFields[9]; } }
     }
 
-    internal class TileWideText09 : TileWideBase, ITileWideText09
+    internal class TileWide310x150Text09 : TileWide310x150Base, ITileWide310x150Text09
     {
-        public TileWideText09() : base(templateName: "TileWideText09", imageCount: 0, textCount: 2)
+        public TileWide310x150Text09() : base(templateName: "TileWide310x150Text09",  fallbackName: "TileWideText09", imageCount: 0, textCount: 2)
         {
         }
 
@@ -760,9 +1171,9 @@ namespace NotificationsExtensions.TileContent
         public INotificationContentText TextBodyWrap { get { return TextFields[1]; } }
     }
 
-    internal class TileWideText10 : TileWideBase, ITileWideText10
+    internal class TileWide310x150Text10 : TileWide310x150Base, ITileWide310x150Text10
     {
-        public TileWideText10() : base(templateName: "TileWideText10", imageCount: 0, textCount: 9)
+        public TileWide310x150Text10() : base(templateName: "TileWide310x150Text10",  fallbackName: "TileWideText10", imageCount: 0, textCount: 9)
         {
         }
 
@@ -777,9 +1188,9 @@ namespace NotificationsExtensions.TileContent
         public INotificationContentText TextColumn2Row4 { get { return TextFields[8]; } }
     }
 
-    internal class TileWideText11 : TileWideBase, ITileWideText11
+    internal class TileWide310x150Text11 : TileWide310x150Base, ITileWide310x150Text11
     {
-        public TileWideText11() : base(templateName: "TileWideText11", imageCount: 0, textCount: 10)
+        public TileWide310x150Text11() : base(templateName: "TileWide310x150Text11",  fallbackName: "TileWideText11", imageCount: 0, textCount: 10)
         {
         }
 
@@ -795,424 +1206,1224 @@ namespace NotificationsExtensions.TileContent
         public INotificationContentText TextColumn2Row5 { get { return TextFields[9]; } }
     }
 
+    internal class TileSquare310x310BlockAndText01 : TileSquare310x310Base, ITileSquare310x310BlockAndText01
+    {
+        public TileSquare310x310BlockAndText01()
+            : base(templateName: "TileSquare310x310BlockAndText01", fallbackName: null, imageCount: 0, textCount: 9)
+        {
+        }
+
+        public INotificationContentText TextHeadingWrap { get { return TextFields[0]; } }
+        public INotificationContentText TextBody1 { get { return TextFields[1]; } }
+        public INotificationContentText TextBody2 { get { return TextFields[2]; } }
+        public INotificationContentText TextBody3 { get { return TextFields[3]; } }
+        public INotificationContentText TextBody4 { get { return TextFields[4]; } }
+        public INotificationContentText TextBody5 { get { return TextFields[5]; } }
+        public INotificationContentText TextBody6 { get { return TextFields[6]; } }
+        public INotificationContentText TextBlock { get { return TextFields[7]; } }
+        public INotificationContentText TextSubBlock { get { return TextFields[8]; } }
+    }
+
+    internal class TileSquare310x310BlockAndText02 : TileSquare310x310Base, ITileSquare310x310BlockAndText02
+    {
+        public TileSquare310x310BlockAndText02()
+            : base(templateName: "TileSquare310x310BlockAndText02", fallbackName: null, imageCount: 1, textCount: 7)
+        {
+        }
+
+        public INotificationContentImage Image { get { return Images[0]; } }
+
+        public INotificationContentText TextBlock { get { return TextFields[0]; } }
+        public INotificationContentText TextHeading1 { get { return TextFields[1]; } }
+        public INotificationContentText TextHeading2 { get { return TextFields[2]; } }
+        public INotificationContentText TextBody1 { get { return TextFields[3]; } }
+        public INotificationContentText TextBody2 { get { return TextFields[4]; } }
+        public INotificationContentText TextBody3 { get { return TextFields[5]; } }
+        public INotificationContentText TextBody4 { get { return TextFields[6]; } }
+    }
+
+    internal class TileSquare310x310Image : TileSquare310x310Base, ITileSquare310x310Image
+    {
+        public TileSquare310x310Image()
+            : base(templateName: "TileSquare310x310Image", fallbackName: null, imageCount: 1, textCount: 0)
+        {
+        }
+
+        public INotificationContentImage Image { get { return Images[0]; } }
+    }
+
+    internal class TileSquare310x310ImageAndText01 : TileSquare310x310Base, ITileSquare310x310ImageAndText01
+    {
+        public TileSquare310x310ImageAndText01()
+            : base(templateName: "TileSquare310x310ImageAndText01", fallbackName: null, imageCount: 1, textCount: 1)
+        {
+        }
+
+        public INotificationContentImage Image { get { return Images[0]; } }
+
+        public INotificationContentText TextCaptionWrap { get { return TextFields[0]; } }
+    }
+
+    internal class TileSquare310x310ImageAndText02 : TileSquare310x310Base, ITileSquare310x310ImageAndText02
+    {
+        public TileSquare310x310ImageAndText02()
+            : base(templateName: "TileSquare310x310ImageAndText02", fallbackName: null, imageCount: 1, textCount: 2)
+        {
+        }
+
+        public INotificationContentImage Image { get { return Images[0]; } }
+
+        public INotificationContentText TextCaption1 { get { return TextFields[0]; } }
+        public INotificationContentText TextCaption2 { get { return TextFields[1]; } }
+    }
+
+    internal class TileSquare310x310ImageAndTextOverlay01 : TileSquare310x310Base, ITileSquare310x310ImageAndTextOverlay01
+    {
+        public TileSquare310x310ImageAndTextOverlay01()
+            : base(templateName: "TileSquare310x310ImageAndTextOverlay01", fallbackName: null, imageCount: 1, textCount: 1)
+        {
+        }
+
+        public INotificationContentImage Image { get { return Images[0]; } }
+
+        public INotificationContentText TextHeadingWrap { get { return TextFields[0]; } }
+    }
+
+    internal class TileSquare310x310ImageAndTextOverlay02 : TileSquare310x310Base, ITileSquare310x310ImageAndTextOverlay02
+    {
+        public TileSquare310x310ImageAndTextOverlay02()
+            : base(templateName: "TileSquare310x310ImageAndTextOverlay02", fallbackName: null, imageCount: 1, textCount: 2)
+        {
+        }
+
+        public INotificationContentImage Image { get { return Images[0]; } }
+
+        public INotificationContentText TextHeadingWrap { get { return TextFields[0]; } }
+        public INotificationContentText TextBodyWrap { get { return TextFields[1]; } }
+    }
+
+    internal class TileSquare310x310ImageAndTextOverlay03 : TileSquare310x310Base, ITileSquare310x310ImageAndTextOverlay03
+    {
+        public TileSquare310x310ImageAndTextOverlay03()
+            : base(templateName: "TileSquare310x310ImageAndTextOverlay03", fallbackName: null, imageCount: 1, textCount: 4)
+        {
+        }
+
+        public INotificationContentImage Image { get { return Images[0]; } }
+
+        public INotificationContentText TextHeadingWrap { get { return TextFields[0]; } }
+        public INotificationContentText TextBody1 { get { return TextFields[1]; } }
+        public INotificationContentText TextBody2 { get { return TextFields[2]; } }
+        public INotificationContentText TextBody3 { get { return TextFields[3]; } }
+    }
+
+    internal class TileSquare310x310ImageCollection : TileSquare310x310Base, ITileSquare310x310ImageCollection
+    {
+        public TileSquare310x310ImageCollection()
+            : base(templateName: "TileWide310x150ImageCollection", fallbackName: null, imageCount: 5, textCount: 0)
+        {
+        }
+
+        public INotificationContentImage ImageMain { get { return Images[0]; } }
+        public INotificationContentImage ImageSmall1 { get { return Images[1]; } }
+        public INotificationContentImage ImageSmall2 { get { return Images[2]; } }
+        public INotificationContentImage ImageSmall3 { get { return Images[3]; } }
+        public INotificationContentImage ImageSmall4 { get { return Images[4]; } }
+    }
+
+    internal class TileSquare310x310ImageCollectionAndText01 : TileSquare310x310Base, ITileSquare310x310ImageCollectionAndText01
+    {
+        public TileSquare310x310ImageCollectionAndText01()
+            : base(templateName: "TileWide310x150ImageCollectionAndText01", fallbackName: null, imageCount: 5, textCount: 1)
+        {
+        }
+
+        public INotificationContentImage ImageMain { get { return Images[0]; } }
+        public INotificationContentImage ImageSmall1 { get { return Images[1]; } }
+        public INotificationContentImage ImageSmall2 { get { return Images[2]; } }
+        public INotificationContentImage ImageSmall3 { get { return Images[3]; } }
+        public INotificationContentImage ImageSmall4 { get { return Images[4]; } }
+
+        public INotificationContentText TextCaptionWrap { get { return TextFields[0]; } }
+    }
+
+    internal class TileSquare310x310ImageCollectionAndText02 : TileSquare310x310Base, ITileSquare310x310ImageCollectionAndText02
+    {
+        public TileSquare310x310ImageCollectionAndText02()
+            : base(templateName: "TileWide310x150ImageCollectionAndText02", fallbackName: null, imageCount: 5, textCount: 2)
+        {
+        }
+
+        public INotificationContentImage ImageMain { get { return Images[0]; } }
+        public INotificationContentImage ImageSmall1 { get { return Images[1]; } }
+        public INotificationContentImage ImageSmall2 { get { return Images[2]; } }
+        public INotificationContentImage ImageSmall3 { get { return Images[3]; } }
+        public INotificationContentImage ImageSmall4 { get { return Images[4]; } }
+
+        public INotificationContentText TextCaption1 { get { return TextFields[0]; } }
+        public INotificationContentText TextCaption2 { get { return TextFields[1]; } }
+    }
+
+    internal class TileSquare310x310SmallImagesAndTextList01 : TileSquare310x310Base, ITileSquare310x310SmallImagesAndTextList01
+    {
+        public TileSquare310x310SmallImagesAndTextList01()
+            : base(templateName: "TileSquare310x310SmallImagesAndTextList01", fallbackName: null, imageCount: 3, textCount: 9)
+        {
+        }
+
+        public INotificationContentImage Image1 { get { return Images[0]; } }
+        public INotificationContentText TextHeading1 { get { return TextFields[0]; } }
+        public INotificationContentText TextBodyGroup1Field1 { get { return TextFields[1]; } }
+        public INotificationContentText TextBodyGroup1Field2 { get { return TextFields[2]; } }
+
+        public INotificationContentImage Image2 { get { return Images[1]; } }
+        public INotificationContentText TextHeading2 { get { return TextFields[3]; } }
+        public INotificationContentText TextBodyGroup2Field1 { get { return TextFields[4]; } }
+        public INotificationContentText TextBodyGroup2Field2 { get { return TextFields[5]; } }
+
+        public INotificationContentImage Image3 { get { return Images[2]; } }
+        public INotificationContentText TextHeading3 { get { return TextFields[6]; } }
+        public INotificationContentText TextBodyGroup3Field1 { get { return TextFields[7]; } }
+        public INotificationContentText TextBodyGroup3Field2 { get { return TextFields[8]; } }
+    }
+
+    internal class TileSquare310x310SmallImagesAndTextList02 : TileSquare310x310Base, ITileSquare310x310SmallImagesAndTextList02
+    {
+        public TileSquare310x310SmallImagesAndTextList02()
+            : base(templateName: "TileSquare310x310SmallImagesAndTextList02", fallbackName: null, imageCount: 3, textCount: 3)
+        {
+        }
+
+        public INotificationContentImage Image1 { get { return Images[0]; } }
+        public INotificationContentText TextWrap1 { get { return TextFields[0]; } }
+
+        public INotificationContentImage Image2 { get { return Images[1]; } }
+        public INotificationContentText TextWrap2 { get { return TextFields[1]; } }
+
+        public INotificationContentImage Image3 { get { return Images[2]; } }
+        public INotificationContentText TextWrap3 { get { return TextFields[2]; } }
+    }
+
+    internal class TileSquare310x310SmallImagesAndTextList03 : TileSquare310x310Base, ITileSquare310x310SmallImagesAndTextList03
+    {
+        public TileSquare310x310SmallImagesAndTextList03()
+            : base(templateName: "TileSquare310x310SmallImagesAndTextList03", fallbackName: null, imageCount: 3, textCount: 6)
+        {
+        }
+
+        public INotificationContentImage Image1 { get { return Images[0]; } }
+        public INotificationContentText TextHeading1 { get { return TextFields[0]; } }
+        public INotificationContentText TextWrap1 { get { return TextFields[1]; } }
+
+        public INotificationContentImage Image2 { get { return Images[1]; } }
+        public INotificationContentText TextHeading2 { get { return TextFields[2]; } }
+        public INotificationContentText TextWrap2 { get { return TextFields[3]; } }
+
+        public INotificationContentImage Image3 { get { return Images[2]; } }
+        public INotificationContentText TextHeading3 { get { return TextFields[4]; } }
+        public INotificationContentText TextWrap3 { get { return TextFields[5]; } } 
+    }
+
+    internal class TileSquare310x310SmallImagesAndTextList04 : TileSquare310x310Base, ITileSquare310x310SmallImagesAndTextList04
+    {
+        public TileSquare310x310SmallImagesAndTextList04()
+            : base(templateName: "TileSquare310x310SmallImagesAndTextList04", fallbackName: null, imageCount: 3, textCount: 6)
+        {
+        }
+
+        public INotificationContentImage Image1 { get { return Images[0]; } }
+        public INotificationContentText TextHeading1 { get { return TextFields[0]; } }
+        public INotificationContentText TextWrap1 { get { return TextFields[1]; } }
+
+        public INotificationContentImage Image2 { get { return Images[1]; } }
+        public INotificationContentText TextHeading2 { get { return TextFields[2]; } }
+        public INotificationContentText TextWrap2 { get { return TextFields[3]; } }
+
+        public INotificationContentImage Image3 { get { return Images[2]; } }
+        public INotificationContentText TextHeading3 { get { return TextFields[4]; } }
+        public INotificationContentText TextWrap3 { get { return TextFields[5]; } }
+    }
+
+    internal class TileSquare310x310Text01 : TileSquare310x310Base, ITileSquare310x310Text01
+    {
+        public TileSquare310x310Text01()
+            : base(templateName: "TileSquare310x310Text01", fallbackName: null, imageCount: 0, textCount: 10)
+        {
+        }
+
+        public INotificationContentText TextHeading { get { return TextFields[0]; } }
+        public INotificationContentText TextBody1   { get { return TextFields[1]; } }
+        public INotificationContentText TextBody2   { get { return TextFields[2]; } }
+        public INotificationContentText TextBody3   { get { return TextFields[3]; } }
+        public INotificationContentText TextBody4   { get { return TextFields[4]; } }
+        public INotificationContentText TextBody5   { get { return TextFields[5]; } }
+        public INotificationContentText TextBody6   { get { return TextFields[6]; } }
+        public INotificationContentText TextBody7   { get { return TextFields[7]; } }
+        public INotificationContentText TextBody8   { get { return TextFields[8]; } }
+        public INotificationContentText TextBody9   { get { return TextFields[9]; } }
+    }
+
+    internal class TileSquare310x310Text02 : TileSquare310x310Base, ITileSquare310x310Text02
+    {
+        public TileSquare310x310Text02()
+            : base(templateName: "TileSquare310x310Text02", fallbackName: null, imageCount: 0, textCount: 19)
+        {
+        }
+
+        public INotificationContentText TextHeading     { get { return TextFields[0]; } }
+        public INotificationContentText TextColumn1Row1 { get { return TextFields[1]; } }
+        public INotificationContentText TextColumn2Row1 { get { return TextFields[2]; } }
+        public INotificationContentText TextColumn1Row2 { get { return TextFields[3]; } }
+        public INotificationContentText TextColumn2Row2 { get { return TextFields[4]; } }
+        public INotificationContentText TextColumn1Row3 { get { return TextFields[5]; } }
+        public INotificationContentText TextColumn2Row3 { get { return TextFields[6]; } }
+        public INotificationContentText TextColumn1Row4 { get { return TextFields[7]; } }
+        public INotificationContentText TextColumn2Row4 { get { return TextFields[8]; } }
+        public INotificationContentText TextColumn1Row5 { get { return TextFields[9]; } }
+        public INotificationContentText TextColumn2Row5 { get { return TextFields[10]; } }
+        public INotificationContentText TextColumn1Row6 { get { return TextFields[11]; } }
+        public INotificationContentText TextColumn2Row6 { get { return TextFields[12]; } }
+        public INotificationContentText TextColumn1Row7 { get { return TextFields[13]; } }
+        public INotificationContentText TextColumn2Row7 { get { return TextFields[14]; } }
+        public INotificationContentText TextColumn1Row8 { get { return TextFields[15]; } }
+        public INotificationContentText TextColumn2Row8 { get { return TextFields[16]; } }
+        public INotificationContentText TextColumn1Row9 { get { return TextFields[17]; } }
+        public INotificationContentText TextColumn2Row9 { get { return TextFields[18]; } }
+    }
+
+    internal class TileSquare310x310Text03 : TileSquare310x310Base, ITileSquare310x310Text03
+    {
+        public TileSquare310x310Text03()
+            : base(templateName: "TileSquare310x310Text03", fallbackName: null, imageCount: 0, textCount: 11)
+        {
+        }
+
+        public INotificationContentText TextBody1  { get  { return TextFields[0]; } }
+        public INotificationContentText TextBody2  { get  { return TextFields[1]; } }
+        public INotificationContentText TextBody3  { get  { return TextFields[2]; } }
+        public INotificationContentText TextBody4  { get  { return TextFields[3]; } }
+        public INotificationContentText TextBody5  { get  { return TextFields[4]; } }
+        public INotificationContentText TextBody6  { get  { return TextFields[5]; } }
+        public INotificationContentText TextBody7  { get  { return TextFields[6]; } }
+        public INotificationContentText TextBody8  { get  { return TextFields[7]; } }
+        public INotificationContentText TextBody9  { get  { return TextFields[8]; } }
+        public INotificationContentText TextBody10 { get { return TextFields[9]; } }
+        public INotificationContentText TextBody11 { get { return TextFields[10]; } }
+    }
+
+    internal class TileSquare310x310Text04 : TileSquare310x310Base, ITileSquare310x310Text04
+    {
+        public TileSquare310x310Text04()
+            : base(templateName: "TileSquare310x310Text04", fallbackName: null, imageCount: 0, textCount: 22)
+        {
+        }
+
+        public INotificationContentText TextColumn1Row1  { get { return TextFields[0]; } }
+        public INotificationContentText TextColumn2Row1  { get { return TextFields[1]; } }
+        public INotificationContentText TextColumn1Row2  { get { return TextFields[2]; } }
+        public INotificationContentText TextColumn2Row2  { get { return TextFields[3]; } }
+        public INotificationContentText TextColumn1Row3  { get { return TextFields[4]; } }
+        public INotificationContentText TextColumn2Row3  { get { return TextFields[5]; } }
+        public INotificationContentText TextColumn1Row4  { get { return TextFields[6]; } }
+        public INotificationContentText TextColumn2Row4  { get { return TextFields[7]; } }
+        public INotificationContentText TextColumn1Row5  { get { return TextFields[8]; } }
+        public INotificationContentText TextColumn2Row5  { get { return TextFields[9];  } }
+        public INotificationContentText TextColumn1Row6  { get { return TextFields[10]; } }
+        public INotificationContentText TextColumn2Row6  { get { return TextFields[11]; } }
+        public INotificationContentText TextColumn1Row7  { get { return TextFields[12]; } }
+        public INotificationContentText TextColumn2Row7  { get { return TextFields[13]; } }
+        public INotificationContentText TextColumn1Row8  { get { return TextFields[14]; } }
+        public INotificationContentText TextColumn2Row8  { get { return TextFields[15]; } }
+        public INotificationContentText TextColumn1Row9  { get { return TextFields[16]; } }
+        public INotificationContentText TextColumn2Row9  { get { return TextFields[17]; } }
+        public INotificationContentText TextColumn1Row10 { get { return TextFields[18]; } }
+        public INotificationContentText TextColumn2Row10 { get { return TextFields[19]; } }
+        public INotificationContentText TextColumn1Row11 { get { return TextFields[20]; } }
+        public INotificationContentText TextColumn2Row11 { get { return TextFields[21]; } }
+    }
+
+    internal class TileSquare310x310Text05 : TileSquare310x310Base, ITileSquare310x310Text05
+    {
+        public TileSquare310x310Text05()
+            : base(templateName: "TileSquare310x310Text05", fallbackName: null, imageCount: 0, textCount: 19)
+        {
+        }
+
+        public INotificationContentText TextHeading     { get { return TextFields[0]; } }
+        public INotificationContentText TextColumn1Row1 { get { return TextFields[1]; } }
+        public INotificationContentText TextColumn2Row1 { get { return TextFields[2]; } }
+        public INotificationContentText TextColumn1Row2 { get { return TextFields[3]; } }
+        public INotificationContentText TextColumn2Row2 { get { return TextFields[4]; } }
+        public INotificationContentText TextColumn1Row3 { get { return TextFields[5]; } }
+        public INotificationContentText TextColumn2Row3 { get { return TextFields[6]; } }
+        public INotificationContentText TextColumn1Row4 { get { return TextFields[7]; } }
+        public INotificationContentText TextColumn2Row4 { get { return TextFields[8]; } }
+        public INotificationContentText TextColumn1Row5 { get { return TextFields[9]; } }
+        public INotificationContentText TextColumn2Row5 { get { return TextFields[10]; } }
+        public INotificationContentText TextColumn1Row6 { get { return TextFields[11]; } }
+        public INotificationContentText TextColumn2Row6 { get { return TextFields[12]; } }
+        public INotificationContentText TextColumn1Row7 { get { return TextFields[13]; } }
+        public INotificationContentText TextColumn2Row7 { get { return TextFields[14]; } }
+        public INotificationContentText TextColumn1Row8 { get { return TextFields[15]; } }
+        public INotificationContentText TextColumn2Row8 { get { return TextFields[16]; } }
+        public INotificationContentText TextColumn1Row9 { get { return TextFields[17]; } }
+        public INotificationContentText TextColumn2Row9 { get { return TextFields[18]; } }
+    }
+
+    internal class TileSquare310x310Text06 : TileSquare310x310Base, ITileSquare310x310Text06
+    {
+        public TileSquare310x310Text06()
+            : base(templateName: "TileSquare310x310Text06", fallbackName: null, imageCount: 0, textCount: 22)
+        {
+        }
+
+        public INotificationContentText TextColumn1Row1  { get { return TextFields[0]; } }
+        public INotificationContentText TextColumn2Row1  { get { return TextFields[1]; } }
+        public INotificationContentText TextColumn1Row2  { get { return TextFields[2]; } }
+        public INotificationContentText TextColumn2Row2  { get { return TextFields[3]; } }
+        public INotificationContentText TextColumn1Row3  { get { return TextFields[4]; } }
+        public INotificationContentText TextColumn2Row3  { get { return TextFields[5]; } }
+        public INotificationContentText TextColumn1Row4  { get { return TextFields[6]; } }
+        public INotificationContentText TextColumn2Row4  { get { return TextFields[7]; } }
+        public INotificationContentText TextColumn1Row5  { get { return TextFields[8]; } }
+        public INotificationContentText TextColumn2Row5  { get { return TextFields[9];  } }
+        public INotificationContentText TextColumn1Row6  { get { return TextFields[10]; } }
+        public INotificationContentText TextColumn2Row6  { get { return TextFields[11]; } }
+        public INotificationContentText TextColumn1Row7  { get { return TextFields[12]; } }
+        public INotificationContentText TextColumn2Row7  { get { return TextFields[13]; } }
+        public INotificationContentText TextColumn1Row8  { get { return TextFields[14]; } }
+        public INotificationContentText TextColumn2Row8  { get { return TextFields[15]; } }
+        public INotificationContentText TextColumn1Row9  { get { return TextFields[16]; } }
+        public INotificationContentText TextColumn2Row9  { get { return TextFields[17]; } }
+        public INotificationContentText TextColumn1Row10 { get { return TextFields[18]; } }
+        public INotificationContentText TextColumn2Row10 { get { return TextFields[19]; } }
+        public INotificationContentText TextColumn1Row11 { get { return TextFields[20]; } }
+        public INotificationContentText TextColumn2Row11 { get { return TextFields[21]; } }
+    }
+
+    internal class TileSquare310x310Text07 : TileSquare310x310Base, ITileSquare310x310Text07
+    {
+        public TileSquare310x310Text07()
+            : base(templateName: "TileSquare310x310Text07", fallbackName: null, imageCount: 0, textCount: 19)
+        {
+        }
+
+        public INotificationContentText TextHeading     { get { return TextFields[0]; } }
+        public INotificationContentText TextColumn1Row1 { get { return TextFields[1]; } }
+        public INotificationContentText TextColumn2Row1 { get { return TextFields[2]; } }
+        public INotificationContentText TextColumn1Row2 { get { return TextFields[3]; } }
+        public INotificationContentText TextColumn2Row2 { get { return TextFields[4]; } }
+        public INotificationContentText TextColumn1Row3 { get { return TextFields[5]; } }
+        public INotificationContentText TextColumn2Row3 { get { return TextFields[6]; } }
+        public INotificationContentText TextColumn1Row4 { get { return TextFields[7]; } }
+        public INotificationContentText TextColumn2Row4 { get { return TextFields[8]; } }
+        public INotificationContentText TextColumn1Row5 { get { return TextFields[9]; } }
+        public INotificationContentText TextColumn2Row5 { get { return TextFields[10]; } }
+        public INotificationContentText TextColumn1Row6 { get { return TextFields[11]; } }
+        public INotificationContentText TextColumn2Row6 { get { return TextFields[12]; } }
+        public INotificationContentText TextColumn1Row7 { get { return TextFields[13]; } }
+        public INotificationContentText TextColumn2Row7 { get { return TextFields[14]; } }
+        public INotificationContentText TextColumn1Row8 { get { return TextFields[15]; } }
+        public INotificationContentText TextColumn2Row8 { get { return TextFields[16]; } }
+        public INotificationContentText TextColumn1Row9 { get { return TextFields[17]; } }
+        public INotificationContentText TextColumn2Row9 { get { return TextFields[18]; } }
+    }
+
+    internal class TileSquare310x310Text08 : TileSquare310x310Base, ITileSquare310x310Text08
+    {
+        public TileSquare310x310Text08()
+            : base(templateName: "TileSquare310x310Text08", fallbackName: null, imageCount: 0, textCount: 22)
+        {
+        }
+
+        public INotificationContentText TextColumn1Row1  { get { return TextFields[0]; } }
+        public INotificationContentText TextColumn2Row1  { get { return TextFields[1]; } }
+        public INotificationContentText TextColumn1Row2  { get { return TextFields[2]; } }
+        public INotificationContentText TextColumn2Row2  { get { return TextFields[3]; } }
+        public INotificationContentText TextColumn1Row3  { get { return TextFields[4]; } }
+        public INotificationContentText TextColumn2Row3  { get { return TextFields[5]; } }
+        public INotificationContentText TextColumn1Row4  { get { return TextFields[6]; } }
+        public INotificationContentText TextColumn2Row4  { get { return TextFields[7]; } }
+        public INotificationContentText TextColumn1Row5  { get { return TextFields[8]; } }
+        public INotificationContentText TextColumn2Row5  { get { return TextFields[9];  } }
+        public INotificationContentText TextColumn1Row6  { get { return TextFields[10]; } }
+        public INotificationContentText TextColumn2Row6  { get { return TextFields[11]; } }
+        public INotificationContentText TextColumn1Row7  { get { return TextFields[12]; } }
+        public INotificationContentText TextColumn2Row7  { get { return TextFields[13]; } }
+        public INotificationContentText TextColumn1Row8  { get { return TextFields[14]; } }
+        public INotificationContentText TextColumn2Row8  { get { return TextFields[15]; } }
+        public INotificationContentText TextColumn1Row9  { get { return TextFields[16]; } }
+        public INotificationContentText TextColumn2Row9  { get { return TextFields[17]; } }
+        public INotificationContentText TextColumn1Row10 { get { return TextFields[18]; } }
+        public INotificationContentText TextColumn2Row10 { get { return TextFields[19]; } }
+        public INotificationContentText TextColumn1Row11 { get { return TextFields[20]; } }
+        public INotificationContentText TextColumn2Row11 { get { return TextFields[21]; } }
+    }
+
+    internal class TileSquare310x310TextList01 : TileSquare310x310Base, ITileSquare310x310TextList01
+    {
+        public TileSquare310x310TextList01()
+            : base(templateName: "TileSquare310x310TextList01", fallbackName: null, imageCount: 0, textCount: 9)
+        {
+        }
+
+        public INotificationContentText TextHeading1 { get { return TextFields[0]; } }
+        public INotificationContentText TextBodyGroup1Field1 { get { return TextFields[1]; } }
+        public INotificationContentText TextBodyGroup1Field2 { get { return TextFields[2]; } }
+
+        public INotificationContentText TextHeading2 { get { return TextFields[3]; } }
+        public INotificationContentText TextBodyGroup2Field1 { get { return TextFields[4]; } }
+        public INotificationContentText TextBodyGroup2Field2 { get { return TextFields[5]; } }
+
+        public INotificationContentText TextHeading3 { get { return TextFields[6]; } }
+        public INotificationContentText TextBodyGroup3Field1 { get { return TextFields[7]; } }
+        public INotificationContentText TextBodyGroup3Field2 { get { return TextFields[8]; } }
+    }
+
+    internal class TileSquare310x310TextList02 : TileSquare310x310Base, ITileSquare310x310TextList02
+    {
+        public TileSquare310x310TextList02()
+            : base(templateName: "TileSquare310x310TextList02", fallbackName: null, imageCount: 0, textCount: 3)
+        {
+        }
+
+        public INotificationContentText TextWrap1 { get { return TextFields[0]; } }
+
+        public INotificationContentText TextWrap2 { get { return TextFields[1]; } }
+
+        public INotificationContentText TextWrap3 { get { return TextFields[2]; } }
+    }
+
+    internal class TileSquare310x310TextList03 : TileSquare310x310Base, ITileSquare310x310TextList03
+    {
+        public TileSquare310x310TextList03()
+            : base(templateName: "TileSquare310x310TextList03", fallbackName: null, imageCount: 0, textCount: 6)
+        {
+        }
+
+        public INotificationContentText TextHeading1 { get { return TextFields[0]; } }
+        public INotificationContentText TextWrap1 { get { return TextFields[1]; } }
+
+        public INotificationContentText TextHeading2 { get { return TextFields[2]; } }
+        public INotificationContentText TextWrap2 { get { return TextFields[3]; } }
+
+        public INotificationContentText TextHeading3 { get { return TextFields[4]; } }
+        public INotificationContentText TextWrap3 { get { return TextFields[5]; } }
+    }
+
+    internal class TileSquare99x99IconWithBadge : TileSquare99x99Base, ITileSquare99x99IconWithBadge
+    {
+        public TileSquare99x99IconWithBadge()
+            : base(templateName: "TileSquare99x99IconWithBadge", fallbackName: null, imageCount: 1, textCount: 0)
+        {
+        }
+
+        public INotificationContentImage ImageIcon { get { return Images[0]; } }
+    }
+
+    internal class TileSquare210x210IconWithBadge : TileSquare210x210Base, ITileSquare210x210IconWithBadge
+    {
+        public TileSquare210x210IconWithBadge()
+            : base(templateName: "TileSquare210x210IconWithBadge", fallbackName: null, imageCount: 1, textCount: 0)
+        {
+        }
+
+        public INotificationContentImage ImageIcon { get { return Images[0]; } }
+    }
+
+    internal class TileWide432x210IconWithBadgeAndText : TileWide432x210Base, ITileWide432x210IconWithBadgeAndText
+    {
+        public TileWide432x210IconWithBadgeAndText()
+            : base(templateName: "TileWide432x210IconWithBadgeAndText", fallbackName: null, imageCount: 1, textCount: 3)
+        {
+        }
+
+        public INotificationContentImage ImageIcon  { get { return Images[0]; } }
+
+        public INotificationContentText TextHeading { get { return TextFields[0]; } }
+        public INotificationContentText TextBody1   { get { return TextFields[1]; } }
+        public INotificationContentText TextBody2   { get { return TextFields[2]; } }
+    }
+
     /// <summary>
     /// A factory which creates tile content objects for all of the toast template types.
     /// </summary>
     public sealed class TileContentFactory
     {
         /// <summary>
-        /// Creates a tile content object for the TileSquareBlock template.
+        /// Creates a tile content object for the TileSquare150x150Block template.
         /// </summary>
-        /// <returns>A tile content object for the TileSquareBlock template.</returns>
-        public static ITileSquareBlock CreateTileSquareBlock()
+        /// <returns>A tile content object for the TileSquare150x150Block template.</returns>
+        public static ITileSquare150x150Block CreateTileSquare150x150Block()
         {
-            return new TileSquareBlock();
+            return new TileSquare150x150Block();
         }
 
         /// <summary>
-        /// Creates a tile content object for the TileSquareImage template.
+        /// Creates a tile content object for the TileSquare150x150Image template.
         /// </summary>
-        /// <returns>A tile content object for the TileSquareImage template.</returns>
-        public static ITileSquareImage CreateTileSquareImage()
+        /// <returns>A tile content object for the TileSquare150x150Image template.</returns>
+        public static ITileSquare150x150Image CreateTileSquare150x150Image()
         {
-            return new TileSquareImage();
+            return new TileSquare150x150Image();
         }
 
         /// <summary>
-        /// Creates a tile content object for the TileSquarePeekImageAndText01 template.
+        /// Creates a tile content object for the TileSquare150x150PeekImageAndText01 template.
         /// </summary>
-        /// <returns>A tile content object for the TileSquarePeekImageAndText01 template.</returns>
-        public static ITileSquarePeekImageAndText01 CreateTileSquarePeekImageAndText01()
+        /// <returns>A tile content object for the TileSquare150x150PeekImageAndText01 template.</returns>
+        public static ITileSquare150x150PeekImageAndText01 CreateTileSquare150x150PeekImageAndText01()
         {
-            return new TileSquarePeekImageAndText01();
+            return new TileSquare150x150PeekImageAndText01();
         }
 
         /// <summary>
-        /// Creates a tile content object for the TileSquarePeekImageAndText02 template.
+        /// Creates a tile content object for the TileSquare150x150PeekImageAndText02 template.
         /// </summary>
-        /// <returns>A tile content object for the TileSquarePeekImageAndText02 template.</returns>
-        public static ITileSquarePeekImageAndText02 CreateTileSquarePeekImageAndText02()
+        /// <returns>A tile content object for the TileSquare150x150PeekImageAndText02 template.</returns>
+        public static ITileSquare150x150PeekImageAndText02 CreateTileSquare150x150PeekImageAndText02()
         {
-            return new TileSquarePeekImageAndText02();
+            return new TileSquare150x150PeekImageAndText02();
         }
 
         /// <summary>
-        /// Creates a tile content object for the TileSquarePeekImageAndText03 template.
+        /// Creates a tile content object for the TileSquare150x150PeekImageAndText03 template.
         /// </summary>
-        /// <returns>A tile content object for the TileSquarePeekImageAndText03 template.</returns>
-        public static ITileSquarePeekImageAndText03 CreateTileSquarePeekImageAndText03()
+        /// <returns>A tile content object for the TileSquare150x150PeekImageAndText03 template.</returns>
+        public static ITileSquare150x150PeekImageAndText03 CreateTileSquare150x150PeekImageAndText03()
         {
-            return new TileSquarePeekImageAndText03();
+            return new TileSquare150x150PeekImageAndText03();
         }
 
         /// <summary>
-        /// Creates a tile content object for the TileSquarePeekImageAndText04 template.
+        /// Creates a tile content object for the TileSquare150x150PeekImageAndText04 template.
         /// </summary>
-        /// <returns>A tile content object for the TileSquarePeekImageAndText04 template.</returns>
-        public static ITileSquarePeekImageAndText04 CreateTileSquarePeekImageAndText04()
+        /// <returns>A tile content object for the TileSquare150x150PeekImageAndText04 template.</returns>
+        public static ITileSquare150x150PeekImageAndText04 CreateTileSquare150x150PeekImageAndText04()
         {
-            return new TileSquarePeekImageAndText04();
+            return new TileSquare150x150PeekImageAndText04();
         }
 
         /// <summary>
-        /// Creates a tile content object for the TileSquareText01 template.
+        /// Creates a tile content object for the TileSquare150x150Text01 template.
         /// </summary>
-        /// <returns>A tile content object for the TileSquareText01 template.</returns>
-        public static ITileSquareText01 CreateTileSquareText01()
+        /// <returns>A tile content object for the TileSquare150x150Text01 template.</returns>
+        public static ITileSquare150x150Text01 CreateTileSquare150x150Text01()
         {
-            return new TileSquareText01();
+            return new TileSquare150x150Text01();
         }
 
         /// <summary>
-        /// Creates a tile content object for the TileSquareText02 template.
+        /// Creates a tile content object for the TileSquare150x150Text02 template.
         /// </summary>
-        /// <returns>A tile content object for the TileSquareText02 template.</returns>
-        public static ITileSquareText02 CreateTileSquareText02()
+        /// <returns>A tile content object for the TileSquare150x150Text02 template.</returns>
+        public static ITileSquare150x150Text02 CreateTileSquare150x150Text02()
         {
-            return new TileSquareText02();
+            return new TileSquare150x150Text02();
         }
 
         /// <summary>
-        /// Creates a tile content object for the TileSquareText03 template.
+        /// Creates a tile content object for the TileSquare150x150Text03 template.
         /// </summary>
-        /// <returns>A tile content object for the TileSquareText03 template.</returns>
-        public static ITileSquareText03 CreateTileSquareText03()
+        /// <returns>A tile content object for the TileSquare150x150Text03 template.</returns>
+        public static ITileSquare150x150Text03 CreateTileSquare150x150Text03()
         {
-            return new TileSquareText03();
+            return new TileSquare150x150Text03();
         }
 
         /// <summary>
-        /// Creates a tile content object for the TileSquareText04 template.
+        /// Creates a tile content object for the TileSquare150x150Text04 template.
         /// </summary>
-        /// <returns>A tile content object for the TileSquareText04 template.</returns>
-        public static ITileSquareText04 CreateTileSquareText04()
+        /// <returns>A tile content object for the TileSquare150x150Text04 template.</returns>
+        public static ITileSquare150x150Text04 CreateTileSquare150x150Text04()
         {
-            return new TileSquareText04();
+            return new TileSquare150x150Text04();
         }
 
         /// <summary>
-        /// Creates a tile content object for the TileWideBlockAndText01 template.
+        /// Creates a tile content object for the TileWide310x150BlockAndText01 template.
         /// </summary>
-        /// <returns>A tile content object for the TileWideBlockAndText01 template.</returns>
-        public static ITileWideBlockAndText01 CreateTileWideBlockAndText01()
+        /// <returns>A tile content object for the TileWide310x150BlockAndText01 template.</returns>
+        public static ITileWide310x150BlockAndText01 CreateTileWide310x150BlockAndText01()
         {
-            return new TileWideBlockAndText01();
+            return new TileWide310x150BlockAndText01();
         }
 
         /// <summary>
-        /// Creates a tile content object for the TileWideBlockAndText02 template.
+        /// Creates a tile content object for the TileWide310x150BlockAndText02 template.
         /// </summary>
-        /// <returns>A tile content object for the TileWideBlockAndText02 template.</returns>
-        public static ITileWideBlockAndText02 CreateTileWideBlockAndText02()
+        /// <returns>A tile content object for the TileWide310x150BlockAndText02 template.</returns>
+        public static ITileWide310x150BlockAndText02 CreateTileWide310x150BlockAndText02()
         {
-            return new TileWideBlockAndText02();
+            return new TileWide310x150BlockAndText02();
         }
 
         /// <summary>
-        /// Creates a tile content object for the TileWideImage template.
+        /// Creates a tile content object for the TileWide310x150Image template.
         /// </summary>
-        /// <returns>A tile content object for the TileWideImage template.</returns>
-        public static ITileWideImage CreateTileWideImage()
+        /// <returns>A tile content object for the TileWide310x150Image template.</returns>
+        public static ITileWide310x150Image CreateTileWide310x150Image()
         {
-            return new TileWideImage();
+            return new TileWide310x150Image();
         }
 
         /// <summary>
-        /// Creates a tile content object for the TileWideImageAndText01 template.
+        /// Creates a tile content object for the TileWide310x150ImageAndText01 template.
         /// </summary>
-        /// <returns>A tile content object for the TileWideImageAndText01 template.</returns>
-        public static ITileWideImageAndText01 CreateTileWideImageAndText01()
+        /// <returns>A tile content object for the TileWide310x150ImageAndText01 template.</returns>
+        public static ITileWide310x150ImageAndText01 CreateTileWide310x150ImageAndText01()
         {
-            return new TileWideImageAndText01();
+            return new TileWide310x150ImageAndText01();
         }
 
         /// <summary>
-        /// Creates a tile content object for the TileWideImageAndText02 template.
+        /// Creates a tile content object for the TileWide310x150ImageAndText02 template.
         /// </summary>
-        /// <returns>A tile content object for the TileWideImageAndText02 template.</returns>
-        public static ITileWideImageAndText02 CreateTileWideImageAndText02()
+        /// <returns>A tile content object for the TileWide310x150ImageAndText02 template.</returns>
+        public static ITileWide310x150ImageAndText02 CreateTileWide310x150ImageAndText02()
         {
-            return new TileWideImageAndText02();
+            return new TileWide310x150ImageAndText02();
         }
 
         /// <summary>
-        /// Creates a tile content object for the TileWideImageCollection template.
+        /// Creates a tile content object for the TileWide310x150ImageCollection template.
         /// </summary>
-        /// <returns>A tile content object for the TileWideImageCollection template.</returns>
-        public static ITileWideImageCollection CreateTileWideImageCollection()
+        /// <returns>A tile content object for the TileWide310x150ImageCollection template.</returns>
+        public static ITileWide310x150ImageCollection CreateTileWide310x150ImageCollection()
         {
-            return new TileWideImageCollection();
+            return new TileWide310x150ImageCollection();
         }
 
         /// <summary>
-        /// Creates a tile content object for the TileWidePeekImage01 template.
+        /// Creates a tile content object for the TileWide310x150PeekImage01 template.
         /// </summary>
-        /// <returns>A tile content object for the TileWidePeekImage01 template.</returns>
-        public static ITileWidePeekImage01 CreateTileWidePeekImage01()
+        /// <returns>A tile content object for the TileWide310x150PeekImage01 template.</returns>
+        public static ITileWide310x150PeekImage01 CreateTileWide310x150PeekImage01()
         {
-            return new TileWidePeekImage01();
+            return new TileWide310x150PeekImage01();
         }
 
         /// <summary>
-        /// Creates a tile content object for the TileWidePeekImage02 template.
+        /// Creates a tile content object for the TileWide310x150PeekImage02 template.
         /// </summary>
-        /// <returns>A tile content object for the TileWidePeekImage02 template.</returns>
-        public static ITileWidePeekImage02 CreateTileWidePeekImage02()
+        /// <returns>A tile content object for the TileWide310x150PeekImage02 template.</returns>
+        public static ITileWide310x150PeekImage02 CreateTileWide310x150PeekImage02()
         {
-            return new TileWidePeekImage02();
+            return new TileWide310x150PeekImage02();
         }
 
         /// <summary>
-        /// Creates a tile content object for the TileWidePeekImage03 template.
+        /// Creates a tile content object for the TileWide310x150PeekImage03 template.
         /// </summary>
-        /// <returns>A tile content object for the TileWidePeekImage03 template.</returns>
-        public static ITileWidePeekImage03 CreateTileWidePeekImage03()
+        /// <returns>A tile content object for the TileWide310x150PeekImage03 template.</returns>
+        public static ITileWide310x150PeekImage03 CreateTileWide310x150PeekImage03()
         {
-            return new TileWidePeekImage03();
+            return new TileWide310x150PeekImage03();
         }
 
         /// <summary>
-        /// Creates a tile content object for the TileWidePeekImage04 template.
+        /// Creates a tile content object for the TileWide310x150PeekImage04 template.
         /// </summary>
-        /// <returns>A tile content object for the TileWidePeekImage04 template.</returns>
-        public static ITileWidePeekImage04 CreateTileWidePeekImage04()
+        /// <returns>A tile content object for the TileWide310x150PeekImage04 template.</returns>
+        public static ITileWide310x150PeekImage04 CreateTileWide310x150PeekImage04()
         {
-            return new TileWidePeekImage04();
+            return new TileWide310x150PeekImage04();
         }
 
         /// <summary>
-        /// Creates a tile content object for the TileWidePeekImage05 template.
+        /// Creates a tile content object for the TileWide310x150PeekImage05 template.
         /// </summary>
-        /// <returns>A tile content object for the TileWidePeekImage05 template.</returns>
-        public static ITileWidePeekImage05 CreateTileWidePeekImage05()
+        /// <returns>A tile content object for the TileWide310x150PeekImage05 template.</returns>
+        public static ITileWide310x150PeekImage05 CreateTileWide310x150PeekImage05()
         {
-            return new TileWidePeekImage05();
+            return new TileWide310x150PeekImage05();
         }
 
         /// <summary>
-        /// Creates a tile content object for the TileWidePeekImage06 template.
+        /// Creates a tile content object for the TileWide310x150PeekImage06 template.
         /// </summary>
-        /// <returns>A tile content object for the TileWidePeekImage06 template.</returns>
-        public static ITileWidePeekImage06 CreateTileWidePeekImage06()
+        /// <returns>A tile content object for the TileWide310x150PeekImage06 template.</returns>
+        public static ITileWide310x150PeekImage06 CreateTileWide310x150PeekImage06()
         {
-            return new TileWidePeekImage06();
+            return new TileWide310x150PeekImage06();
         }
 
         /// <summary>
-        /// Creates a tile content object for the TileWidePeekImageAndText01 template.
+        /// Creates a tile content object for the TileWide310x150PeekImageAndText01 template.
         /// </summary>
-        /// <returns>A tile content object for the TileWidePeekImageAndText01 template.</returns>
-        public static ITileWidePeekImageAndText01 CreateTileWidePeekImageAndText01()
+        /// <returns>A tile content object for the TileWide310x150PeekImageAndText01 template.</returns>
+        public static ITileWide310x150PeekImageAndText01 CreateTileWide310x150PeekImageAndText01()
         {
-            return new TileWidePeekImageAndText01();
+            return new TileWide310x150PeekImageAndText01();
         }
 
         /// <summary>
-        /// Creates a tile content object for the TileWidePeekImageAndText02 template.
+        /// Creates a tile content object for the TileWide310x150PeekImageAndText02 template.
         /// </summary>
-        /// <returns>A tile content object for the TileWidePeekImageAndText02 template.</returns>
-        public static ITileWidePeekImageAndText02 CreateTileWidePeekImageAndText02()
+        /// <returns>A tile content object for the TileWide310x150PeekImageAndText02 template.</returns>
+        public static ITileWide310x150PeekImageAndText02 CreateTileWide310x150PeekImageAndText02()
         {
-            return new TileWidePeekImageAndText02();
+            return new TileWide310x150PeekImageAndText02();
         }
 
         /// <summary>
-        /// Creates a tile content object for the TileWidePeekImageCollection01 template.
+        /// Creates a tile content object for the TileWide310x150PeekImageCollection01 template.
         /// </summary>
-        /// <returns>A tile content object for the TileWidePeekImageCollection01 template.</returns>
-        public static ITileWidePeekImageCollection01 CreateTileWidePeekImageCollection01()
+        /// <returns>A tile content object for the TileWide310x150PeekImageCollection01 template.</returns>
+        public static ITileWide310x150PeekImageCollection01 CreateTileWide310x150PeekImageCollection01()
         {
-            return new TileWidePeekImageCollection01();
+            return new TileWide310x150PeekImageCollection01();
         }
 
         /// <summary>
-        /// Creates a tile content object for the TileWidePeekImageCollection02 template.
+        /// Creates a tile content object for the TileWide310x150PeekImageCollection02 template.
         /// </summary>
-        /// <returns>A tile content object for the TileWidePeekImageCollection02 template.</returns>
-        public static ITileWidePeekImageCollection02 CreateTileWidePeekImageCollection02()
+        /// <returns>A tile content object for the TileWide310x150PeekImageCollection02 template.</returns>
+        public static ITileWide310x150PeekImageCollection02 CreateTileWide310x150PeekImageCollection02()
         {
-            return new TileWidePeekImageCollection02();
+            return new TileWide310x150PeekImageCollection02();
         }
 
         /// <summary>
-        /// Creates a tile content object for the TileWidePeekImageCollection03 template.
+        /// Creates a tile content object for the TileWide310x150PeekImageCollection03 template.
         /// </summary>
-        /// <returns>A tile content object for the TileWidePeekImageCollection03 template.</returns>
-        public static ITileWidePeekImageCollection03 CreateTileWidePeekImageCollection03()
+        /// <returns>A tile content object for the TileWide310x150PeekImageCollection03 template.</returns>
+        public static ITileWide310x150PeekImageCollection03 CreateTileWide310x150PeekImageCollection03()
         {
-            return new TileWidePeekImageCollection03();
+            return new TileWide310x150PeekImageCollection03();
         }
 
         /// <summary>
-        /// Creates a tile content object for the TileWidePeekImageCollection04 template.
+        /// Creates a tile content object for the TileWide310x150PeekImageCollection04 template.
         /// </summary>
-        /// <returns>A tile content object for the TileWidePeekImageCollection04 template.</returns>
-        public static ITileWidePeekImageCollection04 CreateTileWidePeekImageCollection04()
+        /// <returns>A tile content object for the TileWide310x150PeekImageCollection04 template.</returns>
+        public static ITileWide310x150PeekImageCollection04 CreateTileWide310x150PeekImageCollection04()
         {
-            return new TileWidePeekImageCollection04();
+            return new TileWide310x150PeekImageCollection04();
         }
 
         /// <summary>
-        /// Creates a tile content object for the TileWidePeekImageCollection05 template.
+        /// Creates a tile content object for the TileWide310x150PeekImageCollection05 template.
         /// </summary>
-        /// <returns>A tile content object for the TileWidePeekImageCollection05 template.</returns>
-        public static ITileWidePeekImageCollection05 CreateTileWidePeekImageCollection05()
+        /// <returns>A tile content object for the TileWide310x150PeekImageCollection05 template.</returns>
+        public static ITileWide310x150PeekImageCollection05 CreateTileWide310x150PeekImageCollection05()
         {
-            return new TileWidePeekImageCollection05();
+            return new TileWide310x150PeekImageCollection05();
         }
 
         /// <summary>
-        /// Creates a tile content object for the TileWidePeekImageCollection06 template.
+        /// Creates a tile content object for the TileWide310x150PeekImageCollection06 template.
         /// </summary>
-        /// <returns>A tile content object for the TileWidePeekImageCollection06 template.</returns>
-        public static ITileWidePeekImageCollection06 CreateTileWidePeekImageCollection06()
+        /// <returns>A tile content object for the TileWide310x150PeekImageCollection06 template.</returns>
+        public static ITileWide310x150PeekImageCollection06 CreateTileWide310x150PeekImageCollection06()
         {
-            return new TileWidePeekImageCollection06();
+            return new TileWide310x150PeekImageCollection06();
         }
 
         /// <summary>
-        /// Creates a tile content object for the TileWideSmallImageAndText01 template.
+        /// Creates a tile content object for the TileWide310x150SmallImageAndText01 template.
         /// </summary>
-        /// <returns>A tile content object for the TileWideSmallImageAndText01 template.</returns>
-        public static ITileWideSmallImageAndText01 CreateTileWideSmallImageAndText01()
+        /// <returns>A tile content object for the TileWide310x150SmallImageAndText01 template.</returns>
+        public static ITileWide310x150SmallImageAndText01 CreateTileWide310x150SmallImageAndText01()
         {
-            return new TileWideSmallImageAndText01();
+            return new TileWide310x150SmallImageAndText01();
         }
 
         /// <summary>
-        /// Creates a tile content object for the TileWideSmallImageAndText02 template.
+        /// Creates a tile content object for the TileWide310x150SmallImageAndText02 template.
         /// </summary>
-        /// <returns>A tile content object for the TileWideSmallImageAndText02 template.</returns>
-        public static ITileWideSmallImageAndText02 CreateTileWideSmallImageAndText02()
+        /// <returns>A tile content object for the TileWide310x150SmallImageAndText02 template.</returns>
+        public static ITileWide310x150SmallImageAndText02 CreateTileWide310x150SmallImageAndText02()
         {
-            return new TileWideSmallImageAndText02();
+            return new TileWide310x150SmallImageAndText02();
         }
 
         /// <summary>
-        /// Creates a tile content object for the TileWideSmallImageAndText03 template.
+        /// Creates a tile content object for the TileWide310x150SmallImageAndText03 template.
         /// </summary>
-        /// <returns>A tile content object for the TileWideSmallImageAndText03 template.</returns>
+        /// <returns>A tile content object for the TileWide310x150SmallImageAndText03 template.</returns>
 
-        public static ITileWideSmallImageAndText03 CreateTileWideSmallImageAndText03()
+        public static ITileWide310x150SmallImageAndText03 CreateTileWide310x150SmallImageAndText03()
         {
-            return new TileWideSmallImageAndText03();
+            return new TileWide310x150SmallImageAndText03();
         }
 
         /// <summary>
-        /// Creates a tile content object for the TileWideSmallImageAndText04 template.
+        /// Creates a tile content object for the TileWide310x150SmallImageAndText04 template.
         /// </summary>
-        /// <returns>A tile content object for the TileWideSmallImageAndText04 template.</returns>
-        public static ITileWideSmallImageAndText04 CreateTileWideSmallImageAndText04()
+        /// <returns>A tile content object for the TileWide310x150SmallImageAndText04 template.</returns>
+        public static ITileWide310x150SmallImageAndText04 CreateTileWide310x150SmallImageAndText04()
         {
-            return new TileWideSmallImageAndText04();
+            return new TileWide310x150SmallImageAndText04();
         }
 
         /// <summary>
-        /// Creates a tile content object for the TileWideSmallImageAndText05 template.
+        /// Creates a tile content object for the TileWide310x150SmallImageAndText05 template.
         /// </summary>
-        /// <returns>A tile content object for the TileWideSmallImageAndText05 template.</returns>
-        public static ITileWideSmallImageAndText05 CreateTileWideSmallImageAndText05()
+        /// <returns>A tile content object for the TileWide310x150SmallImageAndText05 template.</returns>
+        public static ITileWide310x150SmallImageAndText05 CreateTileWide310x150SmallImageAndText05()
         {
-            return new TileWideSmallImageAndText05();
+            return new TileWide310x150SmallImageAndText05();
         }
 
         /// <summary>
-        /// Creates a tile content object for the TileWideText01 template.
+        /// Creates a tile content object for the TileWide310x150Text01 template.
         /// </summary>
-        /// <returns>A tile content object for the TileWideText01 template.</returns>
-        public static ITileWideText01 CreateTileWideText01()
+        /// <returns>A tile content object for the TileWide310x150Text01 template.</returns>
+        public static ITileWide310x150Text01 CreateTileWide310x150Text01()
         {
-            return new TileWideText01();
+            return new TileWide310x150Text01();
         }
 
         /// <summary>
-        /// Creates a tile content object for the TileWideText02 template.
+        /// Creates a tile content object for the TileWide310x150Text02 template.
         /// </summary>
-        /// <returns>A tile content object for the TileWideText02 template.</returns>
-        public static ITileWideText02 CreateTileWideText02()
+        /// <returns>A tile content object for the TileWide310x150Text02 template.</returns>
+        public static ITileWide310x150Text02 CreateTileWide310x150Text02()
         {
-            return new TileWideText02();
+            return new TileWide310x150Text02();
         }
 
         /// <summary>
-        /// Creates a tile content object for the TileWideText03 template.
+        /// Creates a tile content object for the TileWide310x150Text03 template.
         /// </summary>
-        /// <returns>A tile content object for the TileWideText03 template.</returns>
-        public static ITileWideText03 CreateTileWideText03()
+        /// <returns>A tile content object for the TileWide310x150Text03 template.</returns>
+        public static ITileWide310x150Text03 CreateTileWide310x150Text03()
         {
-            return new TileWideText03();
+            return new TileWide310x150Text03();
         }
 
         /// <summary>
-        /// Creates a tile content object for the TileWideText04 template.
+        /// Creates a tile content object for the TileWide310x150Text04 template.
         /// </summary>
-        /// <returns>A tile content object for the TileWideText04 template.</returns>
-        public static ITileWideText04 CreateTileWideText04()
+        /// <returns>A tile content object for the TileWide310x150Text04 template.</returns>
+        public static ITileWide310x150Text04 CreateTileWide310x150Text04()
         {
-            return new TileWideText04();
+            return new TileWide310x150Text04();
         }
 
         /// <summary>
-        /// Creates a tile content object for the TileWideText05 template.
+        /// Creates a tile content object for the TileWide310x150Text05 template.
         /// </summary>
-        /// <returns>A tile content object for the TileWideText05 template.</returns>
-        public static ITileWideText05 CreateTileWideText05()
+        /// <returns>A tile content object for the TileWide310x150Text05 template.</returns>
+        public static ITileWide310x150Text05 CreateTileWide310x150Text05()
         {
-            return new TileWideText05();
+            return new TileWide310x150Text05();
         }
 
         /// <summary>
-        /// Creates a tile content object for the TileWideText06 template.
+        /// Creates a tile content object for the TileWide310x150Text06 template.
         /// </summary>
-        /// <returns>A tile content object for the TileWideText06 template.</returns>
-        public static ITileWideText06 CreateTileWideText06()
+        /// <returns>A tile content object for the TileWide310x150Text06 template.</returns>
+        public static ITileWide310x150Text06 CreateTileWide310x150Text06()
         {
-            return new TileWideText06();
+            return new TileWide310x150Text06();
         }
 
         /// <summary>
-        /// Creates a tile content object for the TileWideText07 template.
+        /// Creates a tile content object for the TileWide310x150Text07 template.
         /// </summary>
-        /// <returns>A tile content object for the TileWideText07 template.</returns>
-        public static ITileWideText07 CreateTileWideText07()
+        /// <returns>A tile content object for the TileWide310x150Text07 template.</returns>
+        public static ITileWide310x150Text07 CreateTileWide310x150Text07()
         {
-            return new TileWideText07();
+            return new TileWide310x150Text07();
         }
 
         /// <summary>
-        /// Creates a tile content object for the TileWideText08 template.
+        /// Creates a tile content object for the TileWide310x150Text08 template.
         /// </summary>
-        /// <returns>A tile content object for the TileWideText08 template.</returns>
-        public static ITileWideText08 CreateTileWideText08()
+        /// <returns>A tile content object for the TileWide310x150Text08 template.</returns>
+        public static ITileWide310x150Text08 CreateTileWide310x150Text08()
         {
-            return new TileWideText08();
+            return new TileWide310x150Text08();
         }
 
         /// <summary>
-        /// Creates a tile content object for the TileWideText09 template.
+        /// Creates a tile content object for the TileWide310x150Text09 template.
         /// </summary>
-        /// <returns>A tile content object for the TileWideText09 template.</returns>
-        public static ITileWideText09 CreateTileWideText09()
+        /// <returns>A tile content object for the TileWide310x150Text09 template.</returns>
+        public static ITileWide310x150Text09 CreateTileWide310x150Text09()
         {
-            return new TileWideText09();
+            return new TileWide310x150Text09();
         }
 
         /// <summary>
-        /// Creates a tile content object for the TileWideText10 template.
+        /// Creates a tile content object for the TileWide310x150Text10 template.
         /// </summary>
-        /// <returns>A tile content object for the TileWideText10 template.</returns>
-        public static ITileWideText10 CreateTileWideText10()
+        /// <returns>A tile content object for the TileWide310x150Text10 template.</returns>
+        public static ITileWide310x150Text10 CreateTileWide310x150Text10()
         {
-            return new TileWideText10();
+            return new TileWide310x150Text10();
         }
 
         /// <summary>
-        /// Creates a tile content object for the TileWideText11 template.
+        /// Creates a tile content object for the TileWide310x150Text11 template.
         /// </summary>
-        /// <returns>A tile content object for the TileWideText11 template.</returns>
-        public static ITileWideText11 CreateTileWideText11()
+        /// <returns>A tile content object for the TileWide310x150Text11 template.</returns>
+        public static ITileWide310x150Text11 CreateTileWide310x150Text11()
         {
-            return new TileWideText11();
+            return new TileWide310x150Text11();
+        }
+
+        /// <summary>
+        /// Creates a tile content object for the TileSquare310x310BlockAndText01 template.
+        /// </summary>
+        /// <returns>A tile content object for the TileSquare310x310BlockAndText01 template.</returns>
+        public static ITileSquare310x310BlockAndText01 CreateTileSquare310x310BlockAndText01()
+        {
+            return new TileSquare310x310BlockAndText01();
+        }
+
+        /// <summary>
+        /// Creates a tile content object for the TileSquare310x310BlockAndText02 template.
+        /// </summary>
+        /// <returns>A tile content object for the TileSquare310x310BlockAndText02 template.</returns>
+        public static ITileSquare310x310BlockAndText02 CreateTileSquare310x310BlockAndText02()
+        {
+            return new TileSquare310x310BlockAndText02();
+        }
+
+        /// <summary>
+        /// Creates a tile content object for the TileSquare310x310Image template.
+        /// </summary>
+        /// <returns>A tile content object for the TileSquare310x310Image template.</returns>
+        public static ITileSquare310x310Image CreateTileSquare310x310Image()
+        {
+            return new TileSquare310x310Image();
+        }
+
+        /// <summary>
+        /// Creates a tile content object for the TileSquare310x310ImageAndText01 template.
+        /// </summary>
+        /// <returns>A tile content object for the TileSquare310x310ImageAndText01 template.</returns>
+        public static ITileSquare310x310ImageAndText01 CreateTileSquare310x310ImageAndText01()
+        {
+            return new TileSquare310x310ImageAndText01();
+        }
+
+        /// <summary>
+        /// Creates a tile content object for the TileSquare310x310ImageAndText02 template.
+        /// </summary>
+        /// <returns>A tile content object for the TileSquare310x310ImageAndText02 template.</returns>
+        public static ITileSquare310x310ImageAndText02 CreateTileSquare310x310ImageAndText02()
+        {
+            return new TileSquare310x310ImageAndText02();
+        }
+
+        /// <summary>
+        /// Creates a tile content object for the TileSquare310x310ImageAndTextOverlay01 template.
+        /// </summary>
+        /// <returns>A tile content object for the TileSquare310x310ImageAndTextOverlay01 template.</returns>
+        public static ITileSquare310x310ImageAndTextOverlay01 CreateTileSquare310x310ImageAndTextOverlay01()
+        {
+            return new TileSquare310x310ImageAndTextOverlay01();
+        }
+
+        /// <summary>
+        /// Creates a tile content object for the TileSquare310x310ImageAndTextOverlay02 template.
+        /// </summary>
+        /// <returns>A tile content object for the TileSquare310x310ImageAndTextOverlay02 template.</returns>
+        public static ITileSquare310x310ImageAndTextOverlay02 CreateTileSquare310x310ImageAndTextOverlay02()
+        {
+            return new TileSquare310x310ImageAndTextOverlay02();
+        }
+
+        /// <summary>
+        /// Creates a tile content object for the TileSquare310x310ImageAndTextOverlay03 template.
+        /// </summary>
+        /// <returns>A tile content object for the TileSquare310x310ImageAndTextOverlay03 template.</returns>
+        public static ITileSquare310x310ImageAndTextOverlay03 CreateTileSquare310x310ImageAndTextOverlay03()
+        {
+            return new TileSquare310x310ImageAndTextOverlay03();
+        }
+
+        /// <summary>
+        /// Creates a tile content object for the TileSquare310x310ImageCollection template.
+        /// </summary>
+        /// <returns>A tile content object for the TileSquare310x310ImageCollection template.</returns>
+        public static ITileSquare310x310ImageCollection CreateTileSquare310x310ImageCollection()
+        {
+            return new TileSquare310x310ImageCollection();
+        }
+
+        /// <summary>
+        /// Creates a tile content object for the TileSquare310x310ImageCollectionAndText01 template.
+        /// </summary>
+        /// <returns>A tile content object for the TileSquare310x310ImageCollectionAndText01 template.</returns>
+        public static ITileSquare310x310ImageCollectionAndText01 CreateTileSquare310x310ImageCollectionAndText01()
+        {
+            return new TileSquare310x310ImageCollectionAndText01();
+        }
+
+        /// <summary>
+        /// Creates a tile content object for the TileSquare310x310ImageCollectionAndText02 template.
+        /// </summary>
+        /// <returns>A tile content object for the TileSquare310x310ImageCollectionAndText02 template.</returns>
+        public static ITileSquare310x310ImageCollectionAndText02 CreateTileSquare310x310ImageCollectionAndText02()
+        {
+            return new TileSquare310x310ImageCollectionAndText02();
+        }
+
+        /// <summary>
+        /// Creates a tile content object for the TileSquare310x310SmallImagesAndTextList01 template.
+        /// </summary>
+        /// <returns>A tile content object for the TileSquare310x310SmallImagesAndTextList01 template.</returns>
+        public static ITileSquare310x310SmallImagesAndTextList01 CreateTileSquare310x310SmallImagesAndTextList01()
+        {
+            return new TileSquare310x310SmallImagesAndTextList01();
+        }
+
+        /// <summary>
+        /// Creates a tile content object for the TileSquare310x310SmallImagesAndTextList02 template.
+        /// </summary>
+        /// <returns>A tile content object for the TileSquare310x310SmallImagesAndTextList02 template.</returns>
+        public static ITileSquare310x310SmallImagesAndTextList02 CreateTileSquare310x310SmallImagesAndTextList02()
+        {
+            return new TileSquare310x310SmallImagesAndTextList02();
+        }
+
+        /// <summary>
+        /// Creates a tile content object for the TileSquare310x310SmallImagesAndTextList03 template.
+        /// </summary>
+        /// <returns>A tile content object for the TileSquare310x310SmallImagesAndTextList03 template.</returns>
+        public static ITileSquare310x310SmallImagesAndTextList03 CreateTileSquare310x310SmallImagesAndTextList03()
+        {
+            return new TileSquare310x310SmallImagesAndTextList03();
+        }
+
+        /// <summary>
+        /// Creates a tile content object for the TileSquare310x310SmallImagesAndTextList04 template.
+        /// </summary>
+        /// <returns>A tile content object for the TileSquare310x310SmallImagesAndTextList04 template.</returns>
+        public static ITileSquare310x310SmallImagesAndTextList04 CreateTileSquare310x310SmallImagesAndTextList04()
+        {
+            return new TileSquare310x310SmallImagesAndTextList04();
+        }
+
+        /// <summary>
+        /// Creates a tile content object for the TileSquare310x310Text01 template.
+        /// </summary>
+        /// <returns>A tile content object for the TileSquare310x310Text01 template.</returns>
+        public static ITileSquare310x310Text01 CreateTileSquare310x310Text01()
+        {
+            return new TileSquare310x310Text01();
+        }
+
+        /// <summary>
+        /// Creates a tile content object for the TileSquare310x310Text02 template.
+        /// </summary>
+        /// <returns>A tile content object for the TileSquare310x310Text02 template.</returns>
+        public static ITileSquare310x310Text02 CreateTileSquare310x310Text02()
+        {
+            return new TileSquare310x310Text02();
+        }
+
+        /// <summary>
+        /// Creates a tile content object for the TileSquare310x310Text03 template.
+        /// </summary>
+        /// <returns>A tile content object for the TileSquare310x310Text03 template.</returns>
+        public static ITileSquare310x310Text03 CreateTileSquare310x310Text03()
+        {
+            return new TileSquare310x310Text03();
+        }
+
+        /// <summary>
+        /// Creates a tile content object for the TileSquare310x310Text04 template.
+        /// </summary>
+        /// <returns>A tile content object for the TileSquare310x310Text04 template.</returns>
+        public static ITileSquare310x310Text04 CreateTileSquare310x310Text04()
+        {
+            return new TileSquare310x310Text04();
+        }
+
+        /// <summary>
+        /// Creates a tile content object for the TileSquare310x310Text05 template.
+        /// </summary>
+        /// <returns>A tile content object for the TileSquare310x310Text05 template.</returns>
+        public static ITileSquare310x310Text05 CreateTileSquare310x310Text05()
+        {
+            return new TileSquare310x310Text05();
+        }
+
+        /// <summary>
+        /// Creates a tile content object for the TileSquare310x310Text06 template.
+        /// </summary>
+        /// <returns>A tile content object for the TileSquare310x310Text06 template.</returns>
+        public static ITileSquare310x310Text06 CreateTileSquare310x310Text06()
+        {
+            return new TileSquare310x310Text06();
+        }
+
+        /// <summary>
+        /// Creates a tile content object for the TileSquare310x310Text07 template.
+        /// </summary>
+        /// <returns>A tile content object for the TileSquare310x310Text07 template.</returns>
+        public static ITileSquare310x310Text07 CreateTileSquare310x310Text07()
+        {
+            return new TileSquare310x310Text07();
+        }
+
+        /// <summary>
+        /// Creates a tile content object for the TileSquare310x310Text08 template.
+        /// </summary>
+        /// <returns>A tile content object for the TileSquare310x310Text08 template.</returns>
+        public static ITileSquare310x310Text08 CreateTileSquare310x310Text08()
+        {
+            return new TileSquare310x310Text08();
+        }
+
+        /// <summary>
+        /// Creates a tile content object for the TileSquare310x310TextList01 template.
+        /// </summary>
+        /// <returns>A tile content object for the TileSquare310x310TextList01 template.</returns>
+        public static ITileSquare310x310TextList01 CreateTileSquare310x310TextList01()
+        {
+            return new TileSquare310x310TextList01();
+        }
+
+        /// <summary>
+        /// Creates a tile content object for the TileSquare310x310TextList02 template.
+        /// </summary>
+        /// <returns>A tile content object for the TileSquare310x310TextList02 template.</returns>
+        public static ITileSquare310x310TextList02 CreateTileSquare310x310TextList02()
+        {
+            return new TileSquare310x310TextList02();
+        }
+
+        /// <summary>
+        /// Creates a tile content object for the TileSquare310x310TextList03 template.
+        /// </summary>
+        /// <returns>A tile content object for the TileSquare310x310TextList03 template.</returns>
+        public static ITileSquare310x310TextList03 CreateTileSquare310x310TextList03()
+        {
+            return new TileSquare310x310TextList03();
+        }
+
+        /// <summary>
+        /// Creates a tile content object for the TileSquare99x99IconWithBadge template.
+        /// </summary>
+        /// <returns>A tile content object for the TileSquare99x99IconWithBadge template.</returns>
+        public static ITileSquare99x99IconWithBadge CreateTileSquare99x99IconWithBadge()
+        {
+            return new TileSquare99x99IconWithBadge();
+        }
+
+        /// <summary>
+        /// Creates a tile content object for the TileSquare210x210IconWithBadge template.
+        /// </summary>
+        /// <returns>A tile content object for the TileSquare210x210IconWithBadge template.</returns>
+        public static ITileSquare210x210IconWithBadge CreateTileSquare210x210IconWithBadge()
+        {
+            return new TileSquare210x210IconWithBadge();
+        }
+
+        /// <summary>
+        /// Creates a tile content object for the TileWide432x210IconWithBadgeAndText template.
+        /// </summary>
+        /// <returns>A tile content object for the TileWide432x210IconWithBadgeAndText template.</returns>
+        public static ITileWide432x210IconWithBadgeAndText CreateTileWide432x210IconWithBadgeAndText()
+        {
+            return new TileWide432x210IconWithBadgeAndText();
         }
     }
 }

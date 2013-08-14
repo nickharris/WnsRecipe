@@ -113,9 +113,10 @@ namespace NotificationsExtensions
     abstract partial class NotificationBase
 #endif
     {
-        protected NotificationBase(string templateName, int imageCount, int textCount)
+        protected NotificationBase(string templateName, string fallbackName, int imageCount, int textCount)
         {
             m_TemplateName = templateName;
+            m_FallbackName = fallbackName;
 
             m_Images = new NotificationContentImage[imageCount];
             for (int i = 0; i < m_Images.Length; i++)
@@ -286,6 +287,7 @@ namespace NotificationsExtensions
         }
 
         public string TemplateName { get { return m_TemplateName; } }
+        public string FallbackName { get { return m_FallbackName; } }
 
         private bool m_StrictValidation = true;
         private NotificationContentImage[] m_Images;
@@ -294,6 +296,7 @@ namespace NotificationsExtensions
         private string m_Lang;
         private string m_BaseUri;
         private string m_TemplateName;
+        private string m_FallbackName;
         private bool? m_AddImageQueryNullable;
     }
 
